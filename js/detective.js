@@ -7,7 +7,7 @@
 //             #/detective/<ish>/sud          → Sud zali
 import * as db from "./db.js";
 import { toast, confetti, esc, setCleanup } from "./app.js";
-import { CASES, RANKS } from "./cases.js";
+import { CASES, RANKS, FREE_CASES } from "./cases.js";
 import { renderDetective as render2D, rankOf } from "./detective2d.js";
 import { load3D, webglOK, Engine, buildHQ, buildMap, buildLocation, buildInterrogation, buildBoard, buildCourt } from "./det3d.js";
 
@@ -53,6 +53,7 @@ async function go() {
   if (!c) return show("hq", () => sceneHQ());
   const solved = await db.solvedCases();
   const idx = CASES.indexOf(c);
+  if (idx >= FREE_CASES && !db.isPremium()) { location.hash = "#/detective"; setTimeout(premiumModal, 400); return; }
   if (idx > 0 && !solved.some((s) => s.case_id === CASES[idx - 1].id)) { toast("Bu ish hali yopiq — oldingisini yeching"); location.hash = "#/detective"; return; }
   if (!st || st.c.id !== c.id) loadState(c, solved);
   if (scene === "loc") { const loc = c.locations.find((l) => l.id === locId) || c.locations[0]; return show("loc:" + loc.id, () => sceneLoc(loc)); }
@@ -77,13 +78,13 @@ function loadState(c, solved) {
   st = {
     c, seen: new Set(sv?.seen || []), asked: new Set(sv?.asked || []), known: new Set(sv?.known || []),
     clues: sv?.clues || [], statements: sv?.statements || [], found: sv?.found || [], chats: sv?.chats || {},
-    actions: sv?.actions || 0, wrong: sv?.wrong || 0, hints: sv?.hints || 0, briefSeen: sv?.briefSeen || false,
+    actions: sv?.actions || 0, wrong: sv?.wrong || 0, hints: sv?.hints || 0, briefSeen: sv?.briefSeen || false, attempts: sv?.attempts || 0,
     sel: [], done: solved.some((y) => y.case_id === c.id), result: null, culprit: null,
   };
 }
 function save() {
   if (st.done) return;
-  db.vipSet("dstate_" + st.c.id, { seen: [...st.seen], asked: [...st.asked], known: [...st.known], clues: st.clues, statements: st.statements, found: st.found, chats: st.chats, actions: st.actions, wrong: st.wrong, hints: st.hints, briefSeen: st.briefSeen });
+  db.vipSet("dstate_" + st.c.id, { seen: [...st.seen], asked: [...st.asked], known: [...st.known], clues: st.clues, statements: st.statements, found: st.found, chats: st.chats, actions: st.actions, wrong: st.wrong, hints: st.hints, briefSeen: st.briefSeen, attempts: st.attempts });
 }
 const has = (need) => !need || st.known.has(need) || st.seen.has(need);
 const allEv = () => st.c.locations.flatMap((l) => l.ev);
@@ -138,8 +139,9 @@ function flash(title, text, good) {
 async function sceneHQ() {
   st = null;
   const p = await db.getProfile(), solved = await db.solvedCases();
-  const info = CASES.map((x, i) => { const s = solved.find((y) => y.case_id === x.id); return { solved: !!s, score: s?.score, locked: i > 0 && !solved.some((y) => y.case_id === CASES[i - 1].id), inProg: !s && !!db.vipGet("dstate_" + x.id, null) }; });
-  built = buildHQ(CASES, info, (d) => { if (d.locked) return toast("🔒 Avval oldingi ishni yeching"); eng.flyTo([0, 2.6, 2.6], [0, 1, 0], 450).then(() => nav("#/detective/" + d.id)); });
+  const prem = db.isPremium();
+  const info = CASES.map((x, i) => { const s = solved.find((y) => y.case_id === x.id); const pLock = !prem && i >= FREE_CASES; return { solved: !!s, score: s?.score, premium: pLock, locked: pLock || (i > 0 && !solved.some((y) => y.case_id === CASES[i - 1].id)), inProg: !s && !!db.vipGet("dstate_" + x.id, null) }; });
+  built = buildHQ(CASES, info, (d) => { if (d.premium) return premiumModal(); if (d.locked) return toast("🔒 Avval oldingi ishni yeching"); eng.flyTo([0, 2.6, 2.6], [0, 1, 0], 450).then(() => nav("#/detective/" + d.id)); });
   eng.set(built);
   const rank = rankOf(p.tokens);
   const daily = dailyState(); const canClaim = daily.last !== today();
@@ -149,6 +151,11 @@ async function sceneHQ() {
   $("#hDaily").onclick = () => dailyModal();
   $("#hAch").onclick = () => achModal(p, solved);
   if (canClaim) setTimeout(() => cur === "hq" && dailyModal(), 700);
+}
+function premiumModal() {
+  modal(`<div class="center"><div class="big-emoji">👑</div><h2>Bu ish Premium a'zolar uchun</h2>
+    <p class="muted">Birinchi ish — bepul. Yana <b>${CASES.length - FREE_CASES} ta</b> qiziqarli ish (tort o'g'risi, gapiruvchi to'tiqush, kutubxona arvohi, poyezd siri…), kunlik mukofotlar va unvonlar Premiumda.</p>
+    <div class="row" style="justify-content:center"><a class="btn gold lg" href="#/vip">👑 Premium olish</a><button class="btn ghost" data-close>Keyinroq</button></div></div>`);
 }
 function dailyState() { return db.vipGet("daily", { last: null, streak: 0 }); }
 function dailyModal() {
@@ -359,8 +366,14 @@ function timelineModal() {
 }
 
 /* ===================== 6) SUD ZALI ===================== */
+// har bir gumonlanuvchining fosh qilingan yolg'onlari soni
+function liesBy() {
+  const m = {};
+  for (const f of st.found) { const sid = stById(f.a) ? f.a : stById(f.b) ? f.b : null; const s = sid && stById(sid); if (s) { const sus = st.c.suspects.find((x) => x.name === s.who); if (sus) m[sus.id] = (m[sus.id] || 0) + 1; } }
+  return m;
+}
 function sceneCourt() {
-  built = buildCourt(st.c.suspects, (d) => { if (st.result) return; st.culprit = d; built.select(d); courtPanel(); });
+  built = buildCourt(st.c.suspects, liesBy(), (d) => { if (st.result) return; st.culprit = d; built.select(d); courtPanel(); });
   eng.set(built);
   topbar({ back: `#/detective/${st.c.id}`, backTxt: "Xarita", title: "⚖️ Sud zali", sub: st.done ? "Ish yechilgan" : "Aybdorni tanlang" });
   if (st.result) { modal(st.result, "wide verdict-modal"); bindVerdict(); return; }
@@ -370,12 +383,21 @@ function sceneCourt() {
 function courtPanel() {
   const c = st.c, f = st.form || (st.form = {});
   const keyOpts = [...new Set(st.found.map((x) => (stById(x.a) ? x.a : x.b)))].filter((id) => stById(id));
-  const chips = (name, list) => `<div class="chips">${list.map(([v, t]) => `<button class="chip ${f[name] === v ? "on" : ""}" data-n="${name}" data-v="${v}">${esc(t)}</button>`).join("")}</div>`;
-  const p = panel(`<div class="court-step"><b>1. Aybdor:</b> ${st.culprit ? `<span class="tag gold">${st.culprit.s.face} ${st.culprit.s.name}</span>` : `<span class="muted">safdagi odamni bosing 👆</span>`}</div>
-    <div class="court-step"><b>2. Motiv</b>${chips("motive", c.motives.map((m) => [m.id, m.t]))}</div>
-    <div class="court-step"><b>3. Usul</b>${chips("method", c.methods.map((m) => [m.id, m.t]))}</div>
+  if (keyOpts.length === 1 && !f.key) f.key = keyOpts[0];
+  const sol = c.solution;
+  // 📎 — bu variantni tasdiqlovchi dalil topilgan (faqat to'g'ri variantga bog'langan dalillar)
+  const backed = (list, ok) => (list || []).some((e) => st.seen.has(e)) ? ok : null;
+  const mOk = backed(sol.mEv, sol.motive), wOk = backed(sol.wEv, sol.method);
+  const chips = (name, list, mark) => `<div class="chips">${list.map(([v, t]) => `<button class="chip ${f[name] === v ? "on" : ""} ${mark === v ? "backed" : ""}" data-n="${name}" data-v="${v}">${mark === v ? "📎 " : ""}${esc(t)}</button>`).join("")}</div>`;
+  const lies = liesBy();
+  const liesTxt = c.suspects.filter((s) => lies[s.id]).map((s) => `${s.face} <b>${s.name}</b> — ⚡ ${lies[s.id]} ta yolg'on`).join(" · ");
+  const p = panel(`${liesTxt ? `<div class="court-help">🔎 <b>Tergov xulosasi:</b> ${liesTxt}</div>` : `<div class="court-help warn">⚠️ Hali hech kimning yolg'oni fosh qilinmagan. Avval <b>Dalillar taxtasi</b>ga boring.</div>`}
+    <div class="court-step"><b>1. Aybdor:</b> ${st.culprit ? `<span class="tag gold">${st.culprit.s.face} ${st.culprit.s.name}</span>` : `<span class="muted">safdagi odamni bosing 👆 (⚡ belgisi — fosh qilingan yolg'onlar)</span>`}</div>
+    <div class="court-step"><b>2. Motiv</b>${mOk ? ` <small class="muted">📎 — dalil bilan tasdiqlangan</small>` : ""}${chips("motive", c.motives.map((m) => [m.id, m.t]), mOk)}</div>
+    <div class="court-step"><b>3. Usul</b>${wOk ? ` <small class="muted">📎 — dalil bilan tasdiqlangan</small>` : ""}${chips("method", c.methods.map((m) => [m.id, m.t]), wOk)}</div>
     <div class="court-step"><b>4. Hal qiluvchi yolg'on</b>${keyOpts.length ? chips("key", keyOpts.map((id) => { const s = stById(id); return [id, `${s.face} ${s.who}: "${s.text.slice(0, 60)}${s.text.length > 60 ? "…" : ""}"`]; })) : `<p class="muted small">Avval taxtada kamida bitta yolg'onni fosh qiling.</p>`}</div>
     <button class="btn gold lg" id="accuse" ${st.culprit && f.motive && f.method && f.key ? "" : "disabled"}>⚖️ Ayblovni e'lon qilish</button>
+    ${st.attempts ? `<p class="muted small">⚠️ Bu oxirgi imkoniyat (mukofot −30%).</p>` : `<p class="muted small">Xato qilsangiz, yana 1 marta urinib ko'rish mumkin.</p>`}
     ${st.done ? `<p class="muted small">Bu ish avval yechilgan — qayta yechish token bermaydi.</p>` : ""}`, "p-court");
   p.querySelectorAll(".chip").forEach((b) => (b.onclick = () => { f[b.dataset.n] = b.dataset.v; courtPanel(); }));
   p.querySelector("#accuse").onclick = submit;
@@ -383,12 +405,20 @@ function courtPanel() {
 async function submit() {
   const c = st.c, sol = c.solution, f = st.form;
   const okC = st.culprit.s.id === sol.culprit, okM = f.motive === sol.motive, okMe = f.method === sol.method, okK = sol.key.includes(f.key);
+  // birinchi xato — yechim oshkor qilinmaydi, yana bir imkoniyat beriladi
+  if (!okC && !st.attempts && !st.done) {
+    st.attempts = 1; save();
+    built.select(null); st.culprit = null;
+    modal(`<div class="center"><div class="big-emoji">🤔</div><h2>Sudya rozi emas</h2><p>Dalillar <b>boshqa odamga</b> ishora qilyapti. Fosh qilingan yolg'onlarga qayta qarang — kim eng ko'p yolg'on gapirdi?</p><p class="muted small">Yana 1 imkoniyat bor (mukofot −30%).</p><button class="btn gold" data-close>Qayta o'ylab ko'raman</button></div>`, "bad");
+    courtPanel();
+    return;
+  }
   const insight = flagsTotal() ? flagsFound() / flagsTotal() : 1;
   let score = (okC ? 40 : 0) + (okM ? 15 : 0) + (okMe ? 15 : 0) + (okK ? 15 : 0) + Math.round(insight * 15);
   score = Math.max(0, score - Math.min(15, st.wrong * 3));
   const par = allEv().length + c.suspects.reduce((a, s) => a + s.qs.length, 0) + 2;
   const fast = okC && st.actions <= par;
-  const tokens = okC ? Math.round(c.reward * (score / 100) * (1 - 0.15 * st.hints)) + (fast ? Math.round(c.reward * 0.2) : 0) : Math.round(c.reward * 0.05);
+  const tokens = okC ? Math.round(c.reward * (score / 100) * (1 - 0.15 * st.hints) * (st.attempts ? 0.7 : 1)) + (fast && !st.attempts ? Math.round(c.reward * 0.2) : 0) : Math.round(c.reward * 0.05);
   const first = !st.done; let earned = 0;
   const before = rankOf((await db.getProfile()).tokens);
   if (first) { earned = tokens; await db.addTokens(tokens); await db.saveCase(c.id, score); db.vipSet("dstate_" + c.id, null); if (okC && st.hints === 0) db.vipSet("ach_nohint", true); }
@@ -402,7 +432,7 @@ async function submit() {
   st.result = `<div class="center verdict ${okC ? "win" : "lose"}"><div class="verdict-ico">${okC ? "🏆" : "🕳️"}</div><h2>${okC ? "Ish yechildi!" : "Aybdor boshqa odam edi…"}</h2>
     <div class="row" style="justify-content:center">${[["Aybdor", okC], ["Motiv", okM], ["Usul", okMe], ["Yolg'on", okK]].map(([t, ok]) => `<span class="tag ${ok ? "ok-tag" : ""}">${t} ${ok ? "✓" : "✗"}</span>`).join("")}<span class="tag">Fosh: ${Math.round(insight * 100)}%</span></div>
     <div class="big-num">${score}%</div>
-    ${earned ? `<p class="tokens" style="font-size:22px;justify-content:center">+${earned} 🪙${fast ? " (tezkorlik bonusi bilan)" : ""}</p>` : ""}
+    ${earned ? `<p class="tokens" style="font-size:22px;justify-content:center">+${earned} 🪙${fast && !st.attempts ? " (tezkorlik bonusi bilan)" : st.attempts ? " (2-urinish, −30%)" : ""}</p>` : ""}
     ${first && rank.name !== before.name ? `<div class="promo">🎉 Yangi unvon: <b>${rank.ico} ${rank.name}</b></div>` : ""}
     <div class="dossier-3d" style="text-align:left"><p><b>Yechim:</b> ${culprit.face} ${culprit.name} — ${esc(c.motives.find((m) => m.id === sol.motive).t.toLowerCase())}. ${esc(c.methods.find((m) => m.id === sol.method).t)}.</p><p>${esc(c.epilogue)}</p></div>
     <div class="row" style="justify-content:center"><button class="btn gold" id="vNext">${CASES.indexOf(c) < CASES.length - 1 ? "Keyingi ish →" : "Shtabga"}</button><button class="btn ghost" data-close>3D sahnani ko'rish</button></div></div>`;

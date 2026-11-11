@@ -186,25 +186,28 @@ export function buildHQ(cases, info, onOpen) {
   K.box(3.2, 2.2, 0.08, 0x6b4a2e, 3.2, 2.6, -4.92); K.box(2.9, 1.9, 0.02, 0xb8925a, 3.2, 2.6, -4.86);
   for (let i = 0; i < 6; i++) K.box(0.5, 0.65, 0.01, 0xf4ecd8, 2.2 + (i % 3) * 1, 3.05 - Math.floor(i / 3) * 0.95, -4.84);
   // katta stol
-  K.box(7.4, 0.14, 3.2, 0x5a3b26, 0, 0.95, 0.3); K.box(7.2, 0.88, 0.1, 0x4a3020, 0, 0.45, -1.2);
-  K.box(0.12, 0.88, 3, 0x4a3020, -3.6, 0.45, 0.3); K.box(0.12, 0.88, 3, 0x4a3020, 3.6, 0.45, 0.3);
-  K.lamp(0, 3.6, 0.3);
-  // stol chirog'i va kofe
-  K.cyl(0.14, 0.18, 0.06, 0x222222, 3.2, 1.05, -0.8); K.cyl(0.02, 0.02, 0.5, 0x222222, 3.2, 1.3, -0.8); K.cone(0.2, 0.25, 0x2ee59d, 3.2, 1.6, -0.8, 12);
-  K.cyl(0.1, 0.08, 0.18, 0xf4ecd8, -3.1, 1.12, -0.7);
+  K.box(9.8, 0.14, 4.6, 0x5a3b26, 0, 0.95, 0.5); K.box(9.6, 0.88, 0.1, 0x4a3020, 0, 0.45, -1.7);
+  K.box(0.12, 0.88, 4.4, 0x4a3020, -4.8, 0.45, 0.5); K.box(0.12, 0.88, 4.4, 0x4a3020, 4.8, 0.45, 0.5);
+  K.lamp(0, 3.8, 0.4);
   const pick = [], anim = [];
+  // 4 ustun × 3 qator papkalar; orqa qator belgilari balandroq — ustma-ust tushmasin
+  const cols = 4;
   cases.forEach((c, i) => {
-    const x = -2.3 + (i % 3) * 2.3, z = -0.3 + Math.floor(i / 3) * 1.45;
+    const col = i % cols, row = Math.floor(i / cols);
+    const x = -3.3 + col * 2.2, z = -0.9 + row * 1.4;
     const st = info[i];
-    const folder = K.box(1.5, 0.06, 1.05, st.locked ? 0x5a5a6a : 0xd8b26e, x, 1.06, z); folder.rotation.y = (i % 2 ? 1 : -1) * 0.06;
-    K.box(0.5, 0.062, 0.18, st.locked ? 0x4a4a5a : 0xc89c52, x - 0.4, 1.065, z - 0.6);
-    if (st.solved) K.box(0.7, 0.07, 0.25, 0x2ee59d, x + 0.3, 1.1, z + 0.25, { emissive: 0x1a6b47, emissiveIntensity: 0.6 });
-    const sp = K.sprite(labelTex(st.locked ? "🔒" : c.ico, `№${i + 1} ${c.title}`, st.locked ? "Yopiq" : st.solved ? `✓ ${st.score}%` : st.inProg ? "⏳ Davom etmoqda" : "★".repeat(c.diff), st.locked ? "#8a8fb8" : st.solved ? "#2ee59d" : "#ffc94d"), x, i < 3 ? 2.75 : 1.8, z, 1.55, 1.07);
-    const data = { kind: "case", id: c.id, locked: st.locked };
+    const folder = K.box(1.3, 0.06, 0.9, st.locked ? 0x5a5a6a : 0xd8b26e, x, 1.06, z); folder.rotation.y = (i % 2 ? 1 : -1) * 0.06;
+    K.box(0.45, 0.062, 0.16, st.locked ? 0x4a4a5a : 0xc89c52, x - 0.35, 1.065, z - 0.52);
+    if (st.solved) K.box(0.6, 0.07, 0.22, 0x2ee59d, x + 0.25, 1.1, z + 0.2, { emissive: 0x1a6b47, emissiveIntensity: 0.6 });
+    const icon = st.premium ? "👑" : st.locked ? "🔒" : c.ico;
+    const sub = st.premium ? "Premium" : st.locked ? "Yopiq" : st.solved ? `✓ ${st.score}%` : st.inProg ? "⏳ Davom etmoqda" : i === 0 ? "BEPUL ★" : "★".repeat(c.diff);
+    const color = st.premium ? "#ffc94d" : st.locked ? "#8a8fb8" : st.solved ? "#2ee59d" : i === 0 ? "#00d4ff" : "#ffc94d";
+    const sp = K.sprite(labelTex(icon, `№${i + 1} ${c.title}`, sub, color), x, [3.05, 2.3, 1.55][row] ?? 1.55, z, 1.5, 1.03);
+    const data = { kind: "case", id: c.id, locked: st.locked, premium: st.premium };
     pick.push(pickable(folder, data), pickable(sp, data));
-    const by = sp.position.y; anim.push((t) => (sp.position.y = by + Math.sin(t / 700 + i) * 0.05));
+    const by = sp.position.y; anim.push((t) => (sp.position.y = by + Math.sin(t / 700 + i) * 0.04));
   });
-  return { scene: K.scene, pick, anim, cam: [0, 4.6, 6.6], target: [0, 1.6, 0.2], limits: { minD: 3.5, maxD: 10, minA: -0.9, maxA: 0.9, maxP: 1.3 }, onPick: (d) => onOpen(d), alwaysAnimate: false };
+  return { scene: K.scene, pick, anim, cam: [0, 5.4, 8.6], target: [0, 1.75, 0.4], limits: { minD: 3.5, maxD: 13, minA: -0.9, maxA: 0.9, maxP: 1.3 }, onPick: (d) => onOpen(d), alwaysAnimate: false };
 }
 
 /* ===================== 2) ISH XARITASI ===================== */
@@ -403,7 +406,7 @@ export function buildBoard(cards, links, onPick) {
 }
 
 /* ===================== 6) SUD ZALI ===================== */
-export function buildCourt(suspects, onPick) {
+export function buildCourt(suspects, lies, onPick) {
   const K = kit(0x120d0a, [14, 34]);
   K.lights(0.75, 0.7, [0xffd9a0, 14, [0, 4, 2]]);
   K.plane(16, 12, 0x4a3020, 0, 0, 0);
@@ -420,7 +423,8 @@ export function buildCourt(suspects, onPick) {
   suspects.forEach((s, i) => {
     const x = (i - (n - 1) / 2) * 1.6, z = -3.4;
     const p = person(K, x, z, s.face, i, 0, false);
-    const sp = K.sprite(labelTex(s.face, s.name, s.role, "#ffc94d"), x, 2.75, z, 1.45, 1);
+    const nl = lies?.[s.id] || 0;
+    const sp = K.sprite(labelTex(s.face, s.name, nl ? `⚡ ${nl} yolg'on` : s.role, nl ? "#ff5c7a" : "#ffc94d"), x, 2.75, z, 1.45, 1);
     const data = { s, p, x, z, sp };
     pick.push(pickable(p.body, data), pickable(p.head, data), pickable(sp, data)); people.push(data);
   });

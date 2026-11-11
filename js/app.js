@@ -51,9 +51,10 @@ export const setCleanup = (f) => {
 };
 const routes = {
   "": home, test: testIntro, result: resultView, me: myPage, rating: ratingPage,
-  vip: () => renderPremium(app), admin: () => renderAdmin(app), kids: () => renderKids(app),
+  vip: () => renderPremium(app), admin: () => (db.API ? (location.href = "/admin") : renderAdmin(app)), kids: () => renderKids(app),
   games: () => gate("Miya o'yinlari", () => renderGames(app)),
-  detective: () => gate("Detektiv byurosi", () => renderDetective(app)),
+  // Detektiv: 1-ish hamma uchun bepul, qolganlari Premium (detective.js ichida tekshiriladi)
+  detective: () => renderDetective(app),
 };
 async function router() {
   const [path, arg] = location.hash.replace(/^#\/?/, "").split("/");
@@ -201,6 +202,7 @@ async function testIntro() {
     if (name.length < 2) return toast("Ismni to'g'ri kiriting");
     if (!(age >= 7 && age <= 99)) return toast("Yosh 7 dan 99 gacha bo'lishi kerak");
     db.setPerson({ name, age });
+    db.startTest();
     countdown(runTest);
   };
 }

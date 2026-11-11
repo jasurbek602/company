@@ -1,0 +1,5 @@
+secrets/
+.env
+.env.*
+scripts/dev-server.mjs
+*.log

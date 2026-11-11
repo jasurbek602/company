@@ -20,6 +20,11 @@
 @keyframes candp { 50% { box-shadow: 0 0 0 5px rgba(0,184,230,.25); } }
 .lcard.ls-used { border-color: #ff3b5c; opacity: .8; }
 .list-foot { position: sticky; bottom: -22px; display: flex; justify-content: center; padding: 12px 0 4px; background: linear-gradient(180deg, rgba(19,19,58,0), #13133a 40%); }
+/* sud zali yordami */
+.court-help { width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255,92,122,.1); border: 1px solid rgba(255,92,122,.35); font-size: 14px; line-height: 1.6; }
+.court-help.warn { background: rgba(255,201,77,.08); border-color: rgba(255,201,77,.35); }
+.chip.backed { border-color: #2ee59d; box-shadow: 0 0 0 2px rgba(46,229,157,.25); }
+.chip.backed:not(.on) { background: rgba(46,229,157,.12); }
 @media (max-width: 760px) {
   .lgrid { grid-template-columns: 1fr; }
   .brd-actions { width: 100%; justify-content: space-between; }

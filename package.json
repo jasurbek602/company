@@ -10,9 +10,15 @@
     "check": "node scripts/check-questions.mjs",
     "admin": "node scripts/premium.mjs admin",
     "add-premium": "node scripts/premium.mjs add",
-    "contact": "node scripts/premium.mjs contact"
+    "contact": "node scripts/premium.mjs contact",
+    "dev:api": "node scripts/dev-server.mjs",
+    "setup:secrets": "node scripts/setup-secrets.mjs",
+    "backup:decrypt": "node scripts/backup-decrypt.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "mongodb": "^6.10.0"
   }
 }

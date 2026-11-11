@@ -4,7 +4,7 @@
 //  contra[]          — qarama-qarshiliklar: [a, b] juftligi (ko'rsatma yoki dalil id), flag, insight
 //  solution          — aybdor, motiv, usul, hal qiluvchi ko'rsatma (contra ichidagi st)
 
-export const CASES = [
+const ALL = [
   {
     id: "olmos", title: "Muzeydagi olmos", diff: 1, reward: 40, ico: "💎",
     tagline: "Buzilmagan vitrina. O'chirilgan kamera. Yomg'irli tun.",
@@ -58,7 +58,7 @@ export const CASES = [
     ],
     motives: [{ id: "qarz", t: "Katta qarzni to'lash" }, { id: "qasos", t: "Direktordan qasos olish" }, { id: "kolleksiya", t: "Shaxsiy kolleksiya uchun" }, { id: "sugurta", t: "Sug'urta firibgarligi" }],
     methods: [{ id: "kalit", t: "O'z PIN-kodi bilan kamerani o'chirib, ehtiyot kalit bilan vitrinani ochgan" }, { id: "oyna", t: "Derazani sindirib kirgan" }, { id: "qorovul", t: "Qorovulni chalg'itib, eshikdan kirgan" }, { id: "sherik", t: "Ichkaridagi sherik orqali" }],
-    solution: { culprit: "lola", motive: "qarz", method: "kalit", key: ["l1", "l2"] },
+    solution: { culprit: "lola", motive: "qarz", method: "kalit", key: ["l1", "l2"], mEv: ["xat"], wEv: ["vitrina", "pin"] },
     hints: ["Kim kechqurun qayerda bo'lganini aytdi? Uning so'zlarini dalillar bilan solishtiring.", "Ustaxonadagi buyumlar yomg'ir vaqti bilan bog'liq.", "\"Dalillar taxtasi\"da Lolaning \"21:00 da ketdim\" ko'rsatmasini metro kartasi bilan taqqoslang."],
     epilogue: "Lola qarzdan qutulish uchun olmosni xorijga sotmoqchi bo'lgan. Olmos uning ijaradagi garajidan topildi.",
   },
@@ -112,7 +112,7 @@ export const CASES = [
     ],
     motives: [{ id: "meros", t: "Vasiyat o'zgarmasidan oldin merosni olish" }, { id: "biznes", t: "Biznes nizosi" }, { id: "rashk", t: "Rashk" }, { id: "tasodif", t: "Tasodifiy xato" }],
     methods: [{ id: "patnis", t: "Patnis qarovsiz qolganda piyolaga dori solgan" }, { id: "choynak", t: "Choynakka zahar qo'shgan" }, { id: "stol", t: "Stolda o'tirib piyolaga solgan" }, { id: "oshxona", t: "Oshxonada tayyorlanish paytida" }],
-    solution: { culprit: "bobur", motive: "meros", method: "patnis", key: ["b1", "b2"] },
+    solution: { culprit: "bobur", motive: "meros", method: "patnis", key: ["b1", "b2"], mEv: ["vasiyat"], wEv: ["cctv", "flakon"] },
     hints: ["Zahar choynakda emas, piyolada. Demak, piyola qachondir qarovsiz qolgan.", "Peshtaxta kamerasini ofitsiant va jiyan ko'rsatmalari bilan solishtiring.", "Boburning \"bormaganman\" degan so'zini kamera yozuvi bilan taqqoslang."],
     epilogue: "Bobur vasiyat o'zgarishidan qo'rqib, buvisining dorisini piyolaga to'kkan. Flakondagi barmoq izlari unga tegishli chiqdi.",
   },
@@ -169,7 +169,7 @@ export const CASES = [
     ],
     motives: [{ id: "pul", t: "Qo'lyozmani nashriyotga sotib pul topish" }, { id: "raqobat", t: "Adabiy raqobat" }, { id: "ishdan", t: "Ishdan bo'shatilgani uchun qasos" }, { id: "sevgi", t: "Shaxsiy munosabatlar" }],
     methods: [{ id: "ip", t: "Uyqu dori + eshikni tashqaridan qulflab, kalitni ip bilan ichkariga tortgan" }, { id: "deraza", t: "Deraza orqali chiqib ketgan" }, { id: "ehtiyot", t: "Ehtiyot kalitdan foydalangan" }, { id: "ozi", t: "Nigora o'zi qulflab, qo'lyozmani yashirgan" }],
-    solution: { culprit: "kamron", motive: "pul", method: "ip", key: ["k1", "k2"] },
+    solution: { culprit: "kamron", motive: "pul", method: "ip", key: ["k1", "k2"], mEv: ["noutbuk", "shartnoma"], wEv: ["kalit", "eshik", "galstuk"] },
     hints: ["Kim choy patnisini yuqoriga olib chiqqan? Ko'rsatmalarni bir-biri bilan ham solishtirish mumkin.", "Eshik tagidagi tirqish va kalitdagi tolalar — \"yopiq xona\" sirining kaliti.", "Kamronning galstuk haqidagi javobini kalit bilan taqqoslang."],
     epilogue: "Kamron maoshidan norozi bo'lib, romanni o'z nomi bilan sotmoqchi bo'lgan. Qo'lyozma uning mashinasi yukxonasidan topildi.",
   },
@@ -232,7 +232,7 @@ export const CASES = [
     ],
     motives: [{ id: "qarz", t: "Kazino qarzlarini qoplash" }, { id: "qasos", t: "Rahbariyatdan qasos" }, { id: "buyruq", t: "Kimningdir buyrug'i bilan" }, { id: "sugurta", t: "Sug'urta firibgarligi" }],
     methods: [{ id: "keylogger", t: "Qulfga keylogger o'rnatib kodni yig'gan, kamerani takrorlashga qo'yib seyfni ochgan" }, { id: "stiker", t: "Dilshodning stikeridan kodni ko'chirgan" }, { id: "majbur", t: "Malikadan kodni majburlab olgan" }, { id: "kesish", t: "Seyfni kesib ochgan" }],
-    solution: { culprit: "timur", motive: "qarz", method: "keylogger", key: ["t1", "t2", "t3"] },
+    solution: { culprit: "timur", motive: "qarz", method: "keylogger", key: ["t1", "t2", "t3"], mEv: ["kazino"], wEv: ["proshivka", "video"] },
     hints: ["Kod bir urinishda kiritilgan — demak o'g'ri ikkala qismni ham bilgan. Kim ikkala qismga ham \"yetishi\" mumkin?", "Server xonasidagi ikki dalilni IT mutaxassisining so'zlari bilan solishtiring.", "Timurning \"qaytmadim\" degan gapini kirish kartalari jurnali bilan taqqoslang."],
     epilogue: "Timur keylogger orqali kodni yig'ib, videoni aylantirib qo'ygan va seyfni ochgan. Pullar aeroportdagi saqlash kamerasidan topildi.",
   },
@@ -291,7 +291,7 @@ export const CASES = [
     ],
     motives: [{ id: "rol", t: "Bosh rol va gastrol shartnomasi" }, { id: "rashk", t: "Rashk va eski adovat" }, { id: "sugurta", t: "Sug'urta puli" }, { id: "qasos", t: "Kasbiy qasos" }],
     methods: [{ id: "chet", t: "Qo'lqopda zaharni qadah chetidagi belgili joyga surtgan" }, { id: "sharbat", t: "Sharbatga zahar qo'shgan" }, { id: "grim", t: "Grimga zahar qo'shgan" }, { id: "pora", t: "Rekvizitorni pora bilan yollagan" }],
-    solution: { culprit: "javlon", motive: "rol", method: "chet", key: ["j1", "j2", "j3"] },
+    solution: { culprit: "javlon", motive: "rol", method: "chet", key: ["j1", "j2", "j3"], mEv: ["email"], wEv: ["qadah", "belgi", "qolqop"] },
     hints: ["Zahar aynan belgili joyda — demak jinoyatchi Shohruh qayerdan ichishini bilgan.", "Grimxona kirish kartalarini dublyorning so'zlari bilan solishtiring.", "Repetitsiya daftari kimning \"bilmayman\" degan gapini rad etadi?"],
     epilogue: "Javlon bosh rol va gastrol uchun Shohruhni sahnadan chetlatmoqchi bo'lgan. Zahar sotib olingan dorixona kvitansiyasi uning mashinasidan topildi.",
   },
@@ -364,17 +364,270 @@ export const CASES = [
     ],
     motives: [{ id: "pul", t: "Qo'lyozmani xorijlik xaridorga sotish" }, { id: "qasos", t: "Ergashdan shaxsiy qasos" }, { id: "ilm", t: "Ilmiy qiziqish" }, { id: "sugurta", t: "Sug'urta firibgarligi" }],
     methods: [{ id: "xlor", t: "Xloroform bilan hushdan ketkazib, qo'lyozmani Navoiyda sherigiga berib, kalit bilan eshikni tashqaridan qulflagan" }, { id: "deraza", t: "Qo'lyozmani derazadan tashlab yuborgan" }, { id: "choy", t: "Choyga dori solib, qo'lyozmani yashirgan" }, { id: "sherik", t: "Talaba bilan til biriktirgan" }],
-    solution: { culprit: "hamid", motive: "pul", method: "xlor", key: ["h1", "h2", "h3"] },
+    solution: { culprit: "hamid", motive: "pul", method: "xlor", key: ["h1", "h2", "h3"], mEv: ["telefon", "bloknot"], wEv: ["xlor", "sumka", "ilgak"] },
     hints: ["Vagondan faqat bitta odam tushib, qaytgan. Kimning kiyimida yangi qor bor?", "Provodnikning kalit haqidagi so'zlarini kalit ilgagi bilan taqqoslang — keyin uni qayta so'roq qiling.", "Hamidning \"tushmadim\" degan gapini yo'lakdagi palto bilan solishtiring."],
     epilogue: "\"Shifokor\" Hamid aslida qora bozor vositachisi edi. U Ergashni xloroform bilan hushdan ketkazib, qo'lyozmani Navoiyda sherigiga uzatgan, so'ng provodnik kaliti bilan eshikni tashqaridan qulflagan. Kulrang Nexia Buxoro yo'lida to'xtatildi — qo'lyozma qutida edi.",
   },
+  {
+    id: "tort", title: "Yo'qolgan tort", diff: 1, reward: 30, ico: "🎂",
+    tagline: "Tug'ilgan kun. Shokoladli tort. Ochiq deraza.",
+    intro: [
+      "Bugun Akbarning tug'ilgan kuni! Soat 19:00 da mehmonlar kelishi kerak edi, lekin 18:45 da oshxonadagi katta shokoladli tort g'oyib bo'ldi.",
+      "Uyda Akbar va opasi Nilufar bor edi. Qo'shni bola Temur esa tez-tez mehmonga kirib turadi.",
+      "Tortni kim olib ketdi? Izlarni toping!",
+    ],
+    locations: [
+      { id: "oshxona", name: "Oshxona", ico: "🍳", desc: "Stol ustida bo'sh likopcha.", ev: [
+        { id: "likop", ico: "🍽", name: "Bo'sh likopcha", clue: "Likopcha atrofida shokolad uvoqlari va kichkina barmoq izlari bor." },
+        { id: "deraza", ico: "🪟", name: "Ochiq deraza", clue: "Oshxona derazasi ochiq, tagida hovli tomonda stul turibdi — kimdir derazadan chiqqan.", time: "18:40" },
+      ] },
+      { id: "hovli", name: "Hovli", ico: "🌳", desc: "Gulzor va axlat qutisi.", ev: [
+        { id: "iz", ico: "👣", name: "Shokoladli izlar", clue: "Hovlida shokoladli krossovka izlari — 35-o'lcham. Izlar Temurlarning darvozasi tomon ketgan." },
+        { id: "kepka", ico: "🧢", name: "Sport kepkasi", clue: "Axlat qutisi yonida \"TEMUR\" deb yozilgan kepka, ustida shokolad dog'i." },
+      ] },
+    ],
+    suspects: [
+      { id: "akbar", face: "👦", name: "Akbar", role: "Tug'ilgan kun egasi", bio: "10 yosh, shirinlikni yaxshi ko'radi.", qs: [
+        { q: "18:40 da nima qilayotgan eding?", a: "Xonamda sovg'a uchun uyimni yig'ishtirardim. Tortni tushdan beri ko'rmadim!" },
+        { q: "Oyog'ing nechanchi o'lcham?", a: "32-o'lcham. Opam yangi krossovka olib berdi.", clue: "Akbarning oyog'i 32-o'lcham — izlar unga mos emas." },
+      ] },
+      { id: "nilufar", face: "👧", name: "Nilufar", role: "Opa", bio: "14 yosh, mehmonlarni kutib olishga tayyorlanyapti.", qs: [
+        { q: "Oshxonaga kirdingmi?", a: "Yo'q, mehmonxonada sharlarni puflayotgan edim." },
+        { q: "Biror narsa ko'rdingmi?", a: "Ha! 18:40 da derazadan sport kepkali bolani ko'rdim — hovlidan yugurib ketdi.", clue: "18:40 da sport kepkali bola hovlidan yugurib ketgan.", time: "18:40" },
+      ] },
+      { id: "temur", face: "🧒", name: "Temur", role: "Qo'shni bola", bio: "11 yosh, shokoladga hech qachon \"yo'q\" demaydi.", qs: [
+        { q: "Kechqurun qayerda eding?", a: "Uyda multfilm ko'rdim. Hovliga umuman chiqmadim!", st: "t1" },
+        { q: "Kepkangni qayerga qo'yding?", a: "Kepkam... u uyda bo'lsa kerak. Men uni bugun kiymadim.", st: "t2" },
+        { q: "Qo'lingdagi shokolad dog'i nima?", need: "f_temur", a: "Mayli, aytaman… Tort juda chiroyli edi. Bir bo'lagini yemoqchi edim, keyin… ko'proq yeb qo'ydim.", clue: "Temur tortdan yeganini tan oldi!" },
+      ] },
+    ],
+    contra: [
+      { a: "t1", b: "iz", flag: "f_temur", insight: "Temur hovliga chiqmaganini aytdi, lekin shokoladli izlar aynan uning darvozasi tomon ketgan." },
+      { a: "t2", b: "kepka", flag: "f_temur", insight: "Temur kepkani bugun kiymaganini aytdi — lekin kepka shokolad dog'i bilan axlat qutisi yonida yotibdi." },
+    ],
+    motives: [{ id: "shirin", t: "Shokoladli tortni juda yaxshi ko'rgani" }, { id: "qasos", t: "Akbardan xafa bo'lgani" }, { id: "pul", t: "Tortni sotmoqchi bo'lgani" }],
+    methods: [{ id: "deraza", t: "Ochiq derazadan kirib, tortni olib qochgan" }, { id: "eshik", t: "Eshikdan kirib, hech kimga ko'rinmagan" }, { id: "mushuk", t: "Mushuk tortni ag'darib yuborgan" }],
+    solution: { culprit: "temur", motive: "shirin", method: "deraza", key: ["t1", "t2"], mEv: ["likop", "iz"], wEv: ["deraza", "iz"] },
+    hints: ["Izlar qaysi tomonga ketgan?", "Temurning \"hovliga chiqmadim\" degan gapini hovlidagi izlar bilan solishtiring."],
+    epilogue: "Temur tortning yarmini yeb qo'ygan ekan. U uzr so'radi, qolganini qaytardi — va Akbar uni baribir tug'ilgan kunga taklif qildi! 🎉",
+  },
+  {
+    id: "rasm", title: "Devordagi mo'ylov", diff: 1, reward: 35, ico: "🎨",
+    tagline: "Kimdir direktor portretiga binafsha mo'ylov chizdi!",
+    intro: [
+      "Dushanba tongi. Maktab hovlisidagi yangi devoriy rasmda direktor portretiga kimdir katta binafsha mo'ylov chizib qo'yibdi!",
+      "Bo'yoq maktab ustaxonasidan olingan. Ustaxona kalitini juma kuni bir nechta o'quvchi olgan.",
+    ],
+    locations: [
+      { id: "devor", name: "Maktab devori", ico: "🧱", desc: "Rasm va binafsha mo'ylov.", ev: [
+        { id: "boyoq", ico: "🟣", name: "Binafsha bo'yoq", clue: "Mo'ylov binafsha moyli bo'yoq bilan chizilgan — u faqat maktab ustaxonasida bor." },
+        { id: "tomchi", ico: "💧", name: "Bo'yoq tomchilari", clue: "Devor tagida binafsha tomchilar va sport krossovkasining izi — tagida yulduzcha naqshi." },
+      ] },
+      { id: "ustaxona", name: "Ustaxona", ico: "🛠", desc: "Bo'yoqlar javoni.", ev: [
+        { id: "jurnal", ico: "📓", name: "Kalit jurnali", clue: "Juma, 17:30 — kalitni Sardor olgan, 18:15 da qaytargan.", time: "17:30" },
+        { id: "kross", ico: "👟", name: "Krossovka", clue: "Sport zalida Sardorning krossovkasi: tagida yulduzcha naqshi va binafsha dog'lar." },
+      ] },
+    ],
+    suspects: [
+      { id: "sardor", face: "🧑‍🎨", name: "Sardor", role: "Rassom o'quvchi", bio: "Rasm tanlovida 2-o'rin olgan.", qs: [
+        { q: "Juma kuni ustaxonaga kirdingmi?", a: "Yo'q, juma kuni umuman maktabda qolmadim.", st: "s1" },
+        { q: "Krossovkangdagi binafsha dog' nima?", need: "kross", a: "Bu… eski dog'. Men binafsha bo'yoq ishlatmayman!", st: "s2" },
+        { q: "Tanlov natijasi haqida nima deysan?", a: "Direktor mening rasmimni emas, boshqasini tanladi. Adolatsiz!", clue: "Sardor tanlov natijasidan direktorga xafa bo'lgan." },
+      ] },
+      { id: "malika", face: "👩‍🎓", name: "Malika", role: "Sinf sardori", bio: "A'lochi, tartibni yaxshi ko'radi.", qs: [
+        { q: "Juma kuni nima qilding?", a: "17:00 gacha kutubxonada edim, keyin uyga ketdim." },
+        { q: "Kimnidir ko'rdingmi?", a: "Ustaxona tomonga Sardor ketayotgan edi, qo'lida katta sumka bor edi." },
+      ] },
+      { id: "bekzod", face: "🧑", name: "Bekzod", role: "Futbolchi", bio: "Hazilkash.", qs: [
+        { q: "Sen hazil qilishni yaxshi ko'rasan-ku?", a: "Ha, lekin men faqat futbolda hazillashaman! Juma kuni musobaqada edim — butun jamoa ko'rgan." },
+      ] },
+    ],
+    contra: [
+      { a: "s1", b: "jurnal", flag: "f_sardor", insight: "Sardor juma kuni ustaxonaga kirmaganini aytdi, lekin kalit jurnalida aynan uning ismi bor." },
+      { a: "s2", b: "boyoq", flag: "f_sardor", insight: "Sardor binafsha bo'yoq ishlatmasligini aytdi, lekin krossovkasidagi dog' va devordagi bo'yoq bir xil." },
+    ],
+    motives: [{ id: "tanlov", t: "Rasm tanlovida yutqazgani uchun hazil qilish" }, { id: "pul", t: "Bo'yoqni sotish" }, { id: "dars", t: "Darsdan qochish" }],
+    methods: [{ id: "ustaxona", t: "Ustaxonadan bo'yoq olib, kechqurun mo'ylov chizgan" }, { id: "dokon", t: "Do'kondan bo'yoq sotib olgan" }, { id: "kunduzi", t: "Tanaffusda hammaning ko'z oldida chizgan" }],
+    solution: { culprit: "sardor", motive: "tanlov", method: "ustaxona", key: ["s1", "s2"], mEv: ["jurnal"], wEv: ["jurnal", "boyoq", "kross"] },
+    hints: ["Bo'yoq qayerdan olingan va kalit kimda bo'lgan?", "Sardorning \"ustaxonaga kirmadim\" degan gapini kalit jurnali bilan solishtiring."],
+    epilogue: "Sardor uzr so'radi va mo'ylovni o'z qo'li bilan bo'yab tashladi. Direktor esa uning keyingi rasmini maktab kirish qismiga ilishga va'da berdi. 🖼",
+  },
+  {
+    id: "kubok", title: "Kubok qayerda?", diff: 2, reward: 40, ico: "🏆",
+    tagline: "Final oldidan chempionlik kubogi yo'qoldi.",
+    intro: [
+      "Ertaga shahar chempionati finali. Lekin maktabning oltin kubogi shkafdan g'oyib bo'ldi!",
+      "Shkaf qulfi buzilmagan. Kalit faqat murabbiy Rustam aka va jamoa sardori — darvozabon Jamshidda bor.",
+    ],
+    locations: [
+      { id: "zal", name: "Sport zali", ico: "🏟", desc: "Bo'sh shkaf, chiroqlar o'chiq.", ev: [
+        { id: "shkaf", ico: "🗄", name: "Kubok shkafi", clue: "Shkaf kalit bilan ochilgan, qulf butun. Javonda kubokning chang izi qolgan." },
+        { id: "qolqop", ico: "🧤", name: "Darvozabon qo'lqopi", clue: "Shkaf yonida darvozabon qo'lqopi — ichida \"J.\" harfi yozilgan." },
+      ] },
+      { id: "telefon", name: "Ijtimoiy tarmoq", ico: "📱", desc: "Jamoa a'zolarining sahifalari.", ev: [
+        { id: "selfi", ico: "🤳", name: "Kechki selfi", clue: "Kecha 21:10 dagi post: kubok bilan selfi, izoh \"Omad tilsimi! 🍀\". Fonda — Jamshidning xonasidagi plakat.", time: "21:10" },
+        { id: "chipta", ico: "🎫", name: "Avtobus chiptasi", clue: "Raqib jamoa sardori Davron kecha 18:00 dan 23:00 gacha boshqa shaharda bo'lgan — chipta va suratlar bor." },
+      ] },
+    ],
+    suspects: [
+      { id: "rustam", face: "🧔", name: "Rustam aka", role: "Murabbiy", bio: "Qattiqqo'l, lekin adolatli.", qs: [
+        { q: "Kalitingiz qayerda?", a: "Mana, cho'ntagimda. Kecha 18:00 da zalni yopib ketdim, kubok joyida edi.", time: "18:00", clue: "Kubok kecha 18:00 da joyida bo'lgan." },
+        { q: "Jamshid haqida nima deysiz?", a: "Ajoyib darvozabon, lekin juda irimchi — finaldan oldin doim \"omad tilsimi\" qidiradi." },
+      ] },
+      { id: "jamshid", face: "🧤", name: "Jamshid", role: "Darvozabon, sardor", bio: "Irimlarga ishonadi.", qs: [
+        { q: "Kecha kubokni ko'rdingmi?", a: "Yo'q, kecha kubokni ko'rmadim ham! Uyda uxladim.", st: "j1" },
+        { q: "Kalitingni kimgadir berdingmi?", a: "Hech kimga. Kalit doim menda.", clue: "Ikkinchi kalit faqat Jamshidda." },
+        { q: "Qo'lqoping nega shkaf yonida?", need: "qolqop", a: "Uni… mashg'ulotda unutib qoldirgan bo'lsam kerak.", st: "j2" },
+      ] },
+      { id: "davron", face: "😎", name: "Davron", role: "Raqib jamoa sardori", bio: "Finalda raqib.", qs: [
+        { q: "Kubokni sen yashirmadingmi?", a: "Kerak emas! Biz uni finalda yutib olamiz. Kecha boshqa shaharda edim." },
+      ] },
+    ],
+    contra: [
+      { a: "j1", b: "selfi", flag: "f_jamshid", insight: "Jamshid kecha kubokni ko'rmaganini aytdi, lekin 21:10 da o'z xonasida kubok bilan selfi joylagan." },
+      { a: "j2", b: "shkaf", flag: "f_jamshid", insight: "Jamshid qo'lqopini \"mashg'ulotda unutganini\" aytdi — lekin u aynan kalit bilan ochilgan shkaf yonida topildi, kalit esa faqat unda va murabbiyda." },
+    ],
+    motives: [{ id: "omad", t: "Finaldan oldin kubokni \"omad tilsimi\" sifatida uyda saqlash" }, { id: "sotish", t: "Kubokni sotish" }, { id: "raqib", t: "Raqib jamoaga yordam berish" }],
+    methods: [{ id: "kalit", t: "Sardor kaliti bilan shkafni ochib, uyiga olib ketgan" }, { id: "sindirib", t: "Shkafni sindirib olgan" }, { id: "derazadan", t: "Derazadan kirgan" }],
+    solution: { culprit: "jamshid", motive: "omad", method: "kalit", key: ["j1", "j2"], mEv: ["selfi"], wEv: ["shkaf", "qolqop"] },
+    hints: ["Shkaf buzilmagan — demak kalit egasi ochgan.", "Jamshidning \"kubokni ko'rmadim\" degan gapini kechki selfi bilan solishtiring."],
+    epilogue: "Jamshid kubokni \"omad uchun\" yostig'i ostiga qo'ygan ekan. U kubokni qaytardi — va finalda 3 ta penaltini qaytarib, jamoani chempion qildi! 🥇",
+  },
+  {
+    id: "tutiqush", title: "Gapiruvchi to'tiqush", diff: 2, reward: 45, ico: "🦜",
+    tagline: "Hayvonot bog'ining yulduzi — to'tiqush Kesha g'oyib.",
+    intro: [
+      "Toshkent hayvonot bog'ining eng mashhur qushi — 100 ta so'z biladigan to'tiqush Kesha qafasidan g'oyib bo'ldi.",
+      "Qafas buzilmagan, eshigi shunchaki ochilgan. Soat 17:00 da yopilish oldidan uni hamma ko'rgan edi.",
+    ],
+    locations: [
+      { id: "qafas", name: "Qushlar bo'limi", ico: "🪺", desc: "Bo'sh qafas, pat qoldiqlari.", ev: [
+        { id: "pista", ico: "🥜", name: "Pista po'chog'i", clue: "Qafas ichida yangi pista po'choqlari. Kesha pistani juda yaxshi ko'radi — lekin bog'da qushlarga pista berilmaydi." },
+        { id: "kamera", ico: "📹", name: "Bo'lim kamerasi", clue: "16:50 da qora kepkali, kulrang ko'ylakli odam qafas yonida qo'lida pista bilan turibdi.", time: "16:50" },
+      ] },
+      { id: "kirish", name: "Kirish darvozasi", ico: "🎟", desc: "Kassa va xavfsizlik posti.", ev: [
+        { id: "royxat", ico: "📋", name: "Tashrif ro'yxati", clue: "Kolleksioner Ilyos bugun 3-marta keldi; chiqishda katta sumka bilan — 17:05.", time: "17:05" },
+        { id: "sumka", ico: "👜", name: "Ilyosning sumkasi", need: "f_ilyos", lock: "Sumkani tekshirish uchun asos kerak — avval yolg'onini fosh qiling.", clue: "Sumkada: pista paketi, kichik ko'chma qafas va yashil pat." },
+      ] },
+    ],
+    suspects: [
+      { id: "hasan", face: "💂", name: "Hasan aka", role: "Qorovul", bio: "20 yil bog'da ishlaydi.", qs: [
+        { q: "Qafas eshigini kim ochishi mumkin?", a: "Ilgak oddiy — qo'l bilan ochiladi. Lekin Kesha begonaga yaqinlashmaydi… agar pista bermasa!", clue: "Kesha faqat pista bersa begonaga yaqinlashadi." },
+      ] },
+      { id: "lobar", face: "👩‍🔬", name: "Lobar", role: "Yangi parvarishchi", bio: "Ikki haftadan beri ishlaydi.", qs: [
+        { q: "16:50 da qayerda edingiz?", a: "Pingvinlarni boqayotgan edim — boshqa xodimlar ko'rgan." },
+        { q: "Kimdir Kesha bilan qiziqqanmi?", a: "Ha, kulrang ko'ylakli bir kishi uni qancha turishini so'ragandi." },
+      ] },
+      { id: "ilyos", face: "🧑‍💼", name: "Ilyos", role: "Kolleksioner", bio: "Noyob qushlar yig'adi.", qs: [
+        { q: "Bugun qushlar bo'limiga bordingizmi?", a: "Yo'q, men faqat fillarni ko'rdim.", st: "i1" },
+        { q: "Pista yeysizmi?", a: "Pista? Umuman yoqtirmayman!", st: "i2" },
+      ] },
+    ],
+    contra: [
+      { a: "i1", b: "kamera", flag: "f_ilyos", insight: "Ilyos qushlar bo'limiga bormaganini aytdi, lekin kamera 16:50 da uni qafas yonida qo'lida pista bilan ko'rsatmoqda." },
+      { a: "i2", b: "pista", flag: "f_pista", insight: "Ilyos pistani yoqtirmasligini aytdi — qafasdagi yangi pista po'choqlari esa boshqa narsani ko'rsatadi." },
+    ],
+    motives: [{ id: "kolleksiya", t: "Gapiruvchi to'tiqushni kolleksiyasiga qo'shish" }, { id: "qasos", t: "Bog' rahbariyatidan qasos" }, { id: "ozod", t: "Qushni ozodlikka qo'yib yuborish" }],
+    methods: [{ id: "pista", t: "Pista bilan aldab, qafasni ochib, sumkadagi qafasga solgan" }, { id: "tunda", t: "Kechasi devordan oshib kirgan" }, { id: "xodim", t: "Xodim kiyimida kirgan" }],
+    solution: { culprit: "ilyos", motive: "kolleksiya", method: "pista", key: ["i1", "i2"], mEv: ["royxat"], wEv: ["pista", "kamera"] },
+    hints: ["Kesha begonaga faqat pista bersa yaqinlashadi.", "Ilyosning \"qushlar bo'limiga bormadim\" degan gapini kamera bilan solishtiring."],
+    epilogue: "Kesha politsiya bo'limida baland ovozda \"Ilyos — o'g'ri! Pista ber!\" deb qichqirdi. U sog'-salomat bog'ga qaytdi va endi yangi so'z o'rgandi: \"Detektiv!\" 🦜",
+  },
+  {
+    id: "kutubxona", title: "Kutubxonadagi arvoh", diff: 2, reward: 50, ico: "👻",
+    tagline: "Har kecha chiroqlar o'chadi. Noyob kitob yo'qoldi.",
+    intro: [
+      "Eski shahar kutubxonasida bir haftadan beri \"arvoh\" yuribdi: kechasi derazalarda g'alati yorug'lik, ertalab kitoblar sochilgan.",
+      "Bugun ertalab 1890-yilgi noyob \"Yulduzlar xaritasi\" kitobi yo'qolgani ma'lum bo'ldi. Xodimlar: \"Bu arvohning ishi!\"",
+    ],
+    locations: [
+      { id: "zal", name: "O'quv zali", ico: "📚", desc: "Sochilgan kitoblar, bo'sh vitrina.", ev: [
+        { id: "fonar", ico: "🔦", name: "Ko'k fonar", clue: "Javon ortida ko'k oynali fonar — \"arvoh yorug'i\" shu. Ichida yangi batareya." },
+        { id: "chek", ico: "🧾", name: "Do'kon cheki", clue: "Fonar qutisida chek: 3 kun oldin, \"Kamol\" nomidagi chegirma kartasi bilan sotib olingan." },
+      ] },
+      { id: "post", name: "Qorovul posti", ico: "🛡", desc: "Kirish jurnali.", ev: [
+        { id: "jurnal", ico: "📓", name: "Tungi jurnal", clue: "23:10 — xodim kartasi bilan kirish: \"K. Rahimov\" (yordamchi Kamol). 23:40 — chiqish.", time: "23:10" },
+        { id: "elon", ico: "💻", name: "Onlayn e'lon", clue: "Bugun ertalab saytda: \"Noyob kitob, 1890-yil, Yulduzlar xaritasi — sotiladi\". Telefon raqami — Kamolniki." },
+      ] },
+    ],
+    suspects: [
+      { id: "zuhra", face: "👵", name: "Zuhra opa", role: "Kutubxonachi", bio: "40 yil kutubxonada.", qs: [
+        { q: "Arvohga ishonasizmi?", a: "Yo'q, bolam. Lekin kimdir hammani qo'rqitmoqchi." },
+        { q: "Noyob kitob kalitini kim biladi?", a: "Men va yordamchim Kamol. U vitrinaning ehtiyot kalitini saqlaydi.", clue: "Vitrina ehtiyot kaliti Kamolda." },
+      ] },
+      { id: "kamol", face: "🧑‍💼", name: "Kamol", role: "Yordamchi", bio: "Yosh, kompyuterni yaxshi biladi.", qs: [
+        { q: "Kechasi kutubxonaga keldingizmi?", a: "Yo'q! Men arvohdan qo'rqaman, kechasi bu yerga umuman kelmayman.", st: "k1" },
+        { q: "Noyob kitobni ko'rganmisiz?", a: "Bu kitobni hech qachon ushlamaganman, qanday ko'rinishini ham bilmayman.", st: "k2" },
+        { q: "Ko'k fonar kimniki?", need: "fonar", a: "Fonar? Bilmayman… balki arvohnikidir? Ha-ha…", clue: "Kamol fonar haqida asabiy hazil qildi." },
+      ] },
+      { id: "farida", face: "👩‍🎓", name: "Farida", role: "Doimiy kitobxon", bio: "Astronomiya talabasi.", qs: [
+        { q: "Yulduzlar xaritasi kerakmidi?", a: "Ha, diplom ishim uchun! Lekin men uni faqat zalda o'qirdim, ruxsat bilan." },
+        { q: "Kechqurun nima qildingiz?", a: "Yotoqxonada edim, xonadoshlarim tasdiqlaydi." },
+      ] },
+    ],
+    contra: [
+      { a: "k1", b: "jurnal", flag: "f_kamol", insight: "Kamol kechasi kelmasligini aytdi, lekin uning xodim kartasi 23:10 da kirish uchun ishlatilgan." },
+      { a: "k2", b: "elon", flag: "f_elon", insight: "Kamol kitobni hech qachon ushlamaganini aytdi — ertalab esa aynan shu kitob uning raqami bilan sotuvga qo'yilgan." },
+    ],
+    motives: [{ id: "sotish", t: "Kitobni internetda sotish" }, { id: "qorqitish", t: "Xodimlarni qo'rqitib, ishdan bo'shatish" }, { id: "ilm", t: "Diplom ishi uchun" }],
+    methods: [{ id: "arvoh", t: "\"Arvoh\" qilib ko'rsatib, kechasi ehtiyot kalit bilan kitobni olib chiqqan" }, { id: "kunduzi", t: "Kunduzi sumkaga solib chiqqan" }, { id: "deraza", t: "Derazadan tashqariga uzatgan" }],
+    solution: { culprit: "kamol", motive: "sotish", method: "arvoh", key: ["k1", "k2"], mEv: ["elon"], wEv: ["fonar", "chek", "jurnal"] },
+    hints: ["\"Arvoh yorug'i\" qayerdan keladi? Fonar kim uchun sotib olingan?", "Kamolning \"kechasi kelmayman\" degan gapini tungi jurnal bilan solishtiring."],
+    epilogue: "\"Arvoh\" Kamol bo'lib chiqdi! U hammani qo'rqitib, kitobni sotmoqchi edi. Kitob qaytdi, Farida esa diplomini a'loga himoya qildi. 🔭",
+  },
+  {
+    id: "bozor", title: "Qovun rastasidagi sir", diff: 2, reward: 55, ico: "🍈",
+    tagline: "Peshin payti kassa qutisi g'oyib. Qovunlar guvoh.",
+    intro: [
+      "Chorsu bozori, soat 12:00. Qovunfurush Bahodir aka namozga borib kelguncha rastadagi kassa qutisi yo'qoldi.",
+      "Atrofda: qo'shni sotuvchi Gulchehra opa, arava bilan yuk tashuvchi Abbos va xaridor Rahim aka.",
+    ],
+    locations: [
+      { id: "rasta", name: "Qovun rastasi", ico: "🍈", desc: "Qovun uyumi, bo'sh stol.", ev: [
+        { id: "quti", ico: "📦", name: "Bo'sh kassa qutisi", clue: "Quti qovunlar orasidan bo'sh holda topildi. Qopqog'ida oq un izlari." },
+        { id: "kamera", ico: "📹", name: "Bozor kamerasi", clue: "12:05 da yuk aravasi rasta yonida 2 daqiqa to'xtagan. Aravachi yuzini yashirgan.", time: "12:05" },
+      ] },
+      { id: "nonvoy", name: "Nonvoyxona", ico: "🥖", desc: "Un qoplari, tandir.", ev: [
+        { id: "yuk", ico: "📄", name: "Yuk xati", clue: "Bugun 11:30–12:30 da nonvoyxonaga 10 qop un tashilgan. Tashuvchi: Abbos.", time: "11:30" },
+        { id: "arava", ico: "🛒", name: "Abbosning aravasi", clue: "Arava tagida yashirilgan qora paket — ichida pullar, unga belangan." },
+      ] },
+    ],
+    suspects: [
+      { id: "gulchehra", face: "👩‍🌾", name: "Gulchehra opa", role: "Qo'shni sotuvchi", bio: "Bahodir aka bilan eski raqobat.", qs: [
+        { q: "12:00 da nima qildingiz?", a: "Xaridorlarga uzum tortib turdim — bir lahza ham joyimdan jilmadim. Navbat bor edi!" },
+        { q: "Biror narsa ko'rdingizmi?", a: "Bir arava o'tdi, aravachi juda shoshib qovunlar orasiga engashdi." },
+      ] },
+      { id: "abbos", face: "🧑‍🔧", name: "Abbos", role: "Yuk tashuvchi", bio: "Aravasi bilan butun bozorni aylanadi.", qs: [
+        { q: "Bugun qovun rastasiga yaqinlashdingizmi?", a: "Yo'q, umuman. Men bugun boshqa qatorda ishladim.", st: "a1" },
+        { q: "Bugun nima tashidingiz?", a: "Faqat qovun tashidim. Qo'llarim toza — mana!", st: "a2" },
+        { q: "Qarzingiz bormi?", need: "f_abbos", a: "…Ha. Ijara puli uchun qarzdorman. Lekin bu hech narsani anglatmaydi!", clue: "Abbosning ijara qarzi bor." },
+      ] },
+      { id: "rahim", face: "👴", name: "Rahim aka", role: "Xaridor", bio: "Har kuni qovun oladi.", qs: [
+        { q: "Kassa yoniga keldingizmi?", a: "Bahodirni kutib, soyada o'tirdim. Kassaga tegmadim — mana, chekim ham bor." },
+      ] },
+    ],
+    contra: [
+      { a: "a1", b: "kamera", flag: "f_abbos", insight: "Abbos qovun rastasiga yaqinlashmaganini aytdi — kamera esa 12:05 da uning aravasini aynan shu yerda ko'rsatadi." },
+      { a: "a2", b: "yuk", flag: "f_un", insight: "Abbos faqat qovun tashiganini aytdi, lekin bugun nonvoyxonaga un tashigan — qutidagi un izlari unga ishora qiladi." },
+    ],
+    motives: [{ id: "qarz", t: "Ijara qarzini to'lash" }, { id: "raqobat", t: "Bozordagi raqobat" }, { id: "hazil", t: "Hazil qilish" }],
+    methods: [{ id: "arava", t: "Aravani rasta yoniga to'xtatib, qutini bo'shatgan va pulni arava tagiga yashirgan" }, { id: "xaridor", t: "Xaridor bo'lib kelib olgan" }, { id: "tunda", t: "Kechasi kelgan" }],
+    solution: { culprit: "abbos", motive: "qarz", method: "arava", key: ["a1", "a2"], mEv: ["arava"], wEv: ["kamera", "arava", "quti"] },
+    hints: ["Qutidagi oq izlar nima? Bugun kim un tashigan?", "Abbosning \"rastaga yaqinlashmadim\" degan gapini kamera bilan solishtiring."],
+    epilogue: "Pul arava tagidan topildi. Bahodir aka Abbosni kechirdi va unga doimiy ish taklif qildi: \"Halol ishlasang, qarzing ham uziladi!\" 🍈",
+  },
 ];
+
+// Tartib: oson va qiziqarli ishlardan murakkabiga. 1-ish bepul, qolganlari Premium.
+const ORDER = ["olmos", "tort", "rasm", "kubok", "tutiqush", "choy", "kutubxona", "bozor", "qolyozma", "bank", "teatr", "poyezd"];
+export const CASES = ORDER.map((id) => ALL.find((c) => c.id === id));
+export const FREE_CASES = 1;
 
 export const RANKS = [
   { min: 0, name: "Stajyor", ico: "🔰" },
-  { min: 60, name: "Detektiv", ico: "🕵️" },
+  { min: 50, name: "Detektiv", ico: "🕵️" },
   { min: 150, name: "Katta detektiv", ico: "🎖" },
-  { min: 280, name: "Inspektor", ico: "⭐" },
-  { min: 450, name: "Bosh inspektor", ico: "🏅" },
-  { min: 650, name: "Afsonaviy tergovchi", ico: "👑" },
+  { min: 300, name: "Inspektor", ico: "⭐" },
+  { min: 500, name: "Bosh inspektor", ico: "🏅" },
+  { min: 750, name: "Afsonaviy tergovchi", ico: "👑" },
 ];

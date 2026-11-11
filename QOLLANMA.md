@@ -34,10 +34,43 @@ Repo: **https://github.com/jasurbek602/company**
 3. **🗣 So'roq** — savol bering. Ba'zi javoblar **ko'rsatma** sifatida taxtaga tushadi. ⚡ savollar yolg'on fosh qilingandan keyin chiqadi.
 4. **🧷 Taxta** — bir-biriga **zid** ikki kartani tanlang (masalan: "21:00 da uyda edim" + "metro kartasi 22:05") → **Taqqoslash**. To'g'ri bo'lsa — yolg'on fosh qilinadi va yangi imkoniyatlar ochiladi. Noto'g'ri taqqoslash ballni kamaytiradi.
 5. **🕒 Xronologiya** — vaqtli dalillar avtomatik tartiblanadi.
-6. **⚖️ Ayblov** — aybdor, motiv, usul va hal qiluvchi yolg'onni tanlang. **Faqat bir marta** topshiriladi.
+6. **⚖️ Sud zali** — aybdorni safdan tanlang (⚡ belgisi — fosh qilingan yolg'onlar soni), motiv va usulni tanlang (📎 — dalil bilan tasdiqlangan variant). Xato qilsangiz, **yana 1 imkoniyat** bor (mukofot −30%).
 7. Mukofot: 🪙 tokenlar va unvonlar (Stajyor → Afsonaviy tergovchi). 💡 Maslahat har biri mukofotni 15% kamaytiradi. Keyingi ish oldingisi yechilgach ochiladi.
+8. **12 ta ish**: 1-ish ("Muzeydagi olmos") — **bepul**, qolgan 11 tasi — **Premium**. Bepul o'ynagan progress Premium'ga kirganda saqlanib qoladi.
 
-## 3. Admin uchun
+## 3. Server, ma'lumotlar bazasi va admin panel (MongoDB + Vercel)
+
+Haqiqiy umumiy reyting va Premium akkauntlar **MongoDB**da saqlanadi. Brauzer bazaga to'g'ridan-to'g'ri ulanmaydi — orada xavfsiz server (Vercel funksiyalari) turadi, shuning uchun baza paroli hech qachon saytda ko'rinmaydi.
+
+### Bir martalik sozlash
+1. **Maxfiy kalitlar** — allaqachon yaratilgan: `company/secrets/vercel-env.txt` (GitHub'ga chiqmaydi). Unda: admin paroli, 2FA kaliti va Vercel uchun barcha qiymatlar. Faylni xavfsiz joyda (masalan parol menejerida) ham saqlang. Qayta yaratish: `npm run setup:secrets -- --force`.
+2. **MongoDB Atlas** (cloud.mongodb.com):
+   - *Database Access* → baza foydalanuvchisining parolini bilib oling (yoki yangilang).
+   - *Network Access* → **Add IP Address → Allow access from anywhere (0.0.0.0/0)** (Vercel serverlarining IP manzili o'zgarib turadi; himoya parol va TLS orqali).
+   - `vercel-env.txt` dagi `MONGODB_URI` qatorida `<PAROL>` o'rniga parolni qo'ying.
+3. **Vercel** (vercel.com) → *Add New Project* → GitHub'dagi `company` repozitoriyasini tanlang → *Environment Variables* bo'limiga `vercel-env.txt` dagi **har bir `NOM=qiymat` qatorini** kiriting → *Deploy*.
+4. **2FA**: telefoningizda Google Authenticator / Authy → "+" → *Setup key* → faylidagi 2FA kalitini kiriting.
+5. Tayyor: sayt `https://<loyiha>.vercel.app`, admin panel `https://<loyiha>.vercel.app/admin`.
+
+### Admin panel (`/admin`)
+- Kirish: **admin paroli + telefondagi 6 raqamli kod**. Saytda bu sahifaga havola yo'q.
+- **👑 Premium a'zolar** — ism, login va muddat (1 oy / 3 oy / 1 yil / cheksiz) → **Yaratish** → ekranda login va parol chiqadi (parol faqat bir marta ko'rinadi) → foydalanuvchiga yuboring. Shu yerda: muddatni uzaytirish, yangi parol, bloklash, o'chirish.
+- **🏆 Reyting** — barcha natijalar; nomaqbul ism yoki soxta natijani o'chirish.
+- **💾 Zaxira** — har kuni 03:00 (UTC) da avtomatik shifrlangan nusxa (oxirgi 30 ta). "Hozir nusxa olish", yuklab olish va fayldan tiklash.
+- **📜 Jurnal** — kim qachon kirdi, noto'g'ri urinishlar, barcha o'zgarishlar.
+
+### Xavfsizlik (nima qilingan)
+- Baza paroli va barcha kalitlar faqat Vercel serverida (env), kodda va GitHub'da yo'q.
+- Admin: kuchli parol (scrypt xesh) + **2FA kodi**; 5 ta noto'g'ri urinishdan keyin IP 30 daqiqaga bloklanadi; sessiya 2 soat, 15 daqiqa harakatsizlikda chiqib ketadi, boshqa brauzerga ko'chirib bo'lmaydi.
+- Premium parollar scrypt bilan xeshlanadi; parol almashtirilsa yoki a'zo bloklansa — eski sessiyalar darhol bekor bo'ladi.
+- Reyting: har bir test uchun serverdan imzolangan token, 90 soniyadan tez yuborilgan yoki takroriy natija qabul qilinmaydi, IQ chegaralari tekshiriladi, IP bo'yicha cheklov.
+- NoSQL-injection, juda katta so'rovlar, boshqa saytlardan murojaat (CORS) va admin sahifasini boshqa saytga joylash (clickjacking) bloklangan.
+- Zaxira nusxalar **AES-256** bilan shifrlangan. Lokal ochish: `BACKUP_KEY=... npm run backup:decrypt -- fayl.json`.
+- Lokal sinov: `npm run dev:api` (xotiradagi baza bilan).
+
+> ⚠️ `BACKUP_KEY` yo'qolsa, zaxira nusxalarni ochib bo'lmaydi. `secrets/vercel-env.txt` ni hech kimga yubormang.
+
+## 4. Admin uchun (eski statik rejim — server ulanmagan bo'lsa)
 
 Barcha buyruqlar `company` papkasida terminalda bajariladi.
 
@@ -78,13 +111,13 @@ Premium sahifadagi "Sotib olish" tugmalari shu havolaga olib boradi.
 ### Narxlarni o'zgartirish
 `js/premium.js` faylidagi `PLANS` ro'yxati (narx, nom, imkoniyatlar) → commit → push.
 
-## 4. Umumiy reyting (ixtiyoriy, Supabase)
+## 5. Umumiy reyting (eski, Supabase — ixtiyoriy)
 Hozir reyting har bir foydalanuvchining **o'z qurilmasida**. Hamma uchun umumiy bo'lishi uchun:
 1. supabase.com → yangi loyiha → **SQL Editor** → `supabase/schema.sql` ni ishga tushiring.
 2. `js/config.example.js` → `js/config.js` nusxa, `SUPABASE_URL` va `SUPABASE_ANON_KEY` ni yozing.
 3. `.gitignore` dan `js/config.js` qatorini olib tashlang → commit → push.
 
-## 5. Lokal ishga tushirish va tekshirish
+## 6. Lokal ishga tushirish va tekshirish
 ```bash
 npm run dev
 ```
@@ -95,7 +128,7 @@ npm run check
 ```
 → savollar generatorini tekshiradi (11 200 savol).
 
-## 6. Muhim
+## 7. Muhim
 - **`secrets/credentials.txt` ni saqlab qo'ying** — barcha parollar faqat shu yerda. Uni hech kimga yubormang va GitHub'ga yuklamang.
 - `data/premium-users.json` da faqat xeshlar — parollarni undan tiklab bo'lmaydi.
 - Natijalar taxminiy; klinik IQ testi o'rnini bosmaydi.

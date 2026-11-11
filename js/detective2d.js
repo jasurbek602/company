@@ -1,6 +1,6 @@
 import * as db from "./db.js";
 import { toast, confetti, esc } from "./app.js";
-import { CASES, RANKS } from "./cases.js";
+import { CASES, RANKS, FREE_CASES } from "./cases.js";
 import { mountScene, webglOK } from "./scene3d.js";
 
 let scn = null; // joriy 3D sahna
@@ -47,13 +47,13 @@ export async function renderDetective(app, caseId) {
       <p class="muted mt">Joylarni tinting, gumonlanuvchilarni so'roq qiling, <b>Dalillar taxtasi</b>da yolg'onni fosh qiling — har bir fosh qilingan qarama-qarshilik yangi eshiklarni ochadi. Keyingi ish oldingisi yechilgach ochiladi.</p>
       <div class="grid g3 mt">${CASES.map((x, i) => {
         const s = solved.find((y) => y.case_id === x.id);
-        const locked = i > 0 && !solved.some((y) => y.case_id === CASES[i - 1].id);
+        const locked = (i >= FREE_CASES && !db.isPremium()) || (i > 0 && !solved.some((y) => y.case_id === CASES[i - 1].id));
         const inProg = !s && db.vipGet("dstate_" + x.id, null);
         return `<button class="card case-card ${locked ? "locked" : ""} reveal" data-case="${x.id}" ${locked ? "disabled" : ""} style="text-align:left;transition-delay:${i * 70}ms">
           <div class="case-num">ISH №${String(i + 1).padStart(3, "0")}</div>
           <div class="case-ico">${locked ? "🔒" : x.ico}</div>
           <h3>${x.title}</h3><div class="diff">${"★".repeat(x.diff)}${"☆".repeat(5 - x.diff)}</div>
-          <p class="muted small">${locked ? "Oldingi ishni yeching" : x.tagline}</p>
+          <p class="muted small">${locked ? (i >= FREE_CASES && !db.isPremium() ? "👑 Premium a'zolar uchun" : "Oldingi ishni yeching") : x.tagline}</p>
           <div class="row"><span class="tag tokens">🪙 ${x.reward}</span>${s ? `<span class="tag ok-tag">✓ ${s.score}%</span>` : inProg ? `<span class="tag">⏳ Davom etmoqda</span>` : ""}</div>
           ${s ? `<div class="stamp">YECHILDI</div>` : ""}
         </button>`;
