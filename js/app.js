@@ -2,7 +2,7 @@ import { genItem, CATEGORIES, shuffle } from "./questions.js";
 import { score, fivePoints, deepAnalysis, band, estimate, levelToB } from "./scoring.js";
 import * as db from "./db.js";
 import { renderGames } from "./games.js";
-import { renderDetective } from "./detective.js";
+import { renderDetective, detHandles } from "./detective.js";
 import { renderPremium } from "./premium.js";
 import { renderAdmin } from "./admin.js";
 import { renderKids } from "./kids.js";
@@ -56,8 +56,10 @@ const routes = {
   detective: () => gate("Detektiv byurosi", () => renderDetective(app)),
 };
 async function router() {
-  if (cleanup) { const c = cleanup; cleanup = null; c(); }
   const [path, arg] = location.hash.replace(/^#\/?/, "").split("/");
+  // 3D detektiv ichidagi o'tishlar — sahifa qayta qurilmaydi, faqat sahna almashadi
+  if (path === "detective" && detHandles()) return;
+  if (cleanup) { const c = cleanup; cleanup = null; c(); }
   document.querySelectorAll(".nav a").forEach((a) => a.classList.toggle("active", a.getAttribute("href") === "#/" + path));
   app.innerHTML = "";
   await (routes[path] || home)(arg);

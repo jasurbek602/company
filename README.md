@@ -21,7 +21,7 @@ Moslashuvchan (adaptiv) IQ test sayti: har bir foydalanuvchiga **noyob savollar*
 | **Premium** | Cheksiz test, chuqur tahlil (4 kognitiv indeks, reja, kasblar), 7 trenajyor, 6 detektiv ishi. |
 | **Trenajyorlar** | Dual N-Back (adaptiv daraja), IQ trener (cheksiz, adaptiv), Aylantirish, Schulte, Xotira panjarasi, Stroop, Tezkor hisob. Rekordlar va kunlik seriya. |
 | **Bilimdon bola** | 4–10 yoshli bolalar uchun bepul: sanash, hisob, harflar, ortiqchasi, naqsh, rang va shakl, juftini top. Yulduzlar, 5 bosqich, ovozli effektlar. |
-| **Detektiv** | **3D jinoyat joylari** (Three.js, yengil, qotmaydi), kunlik mukofot seriyasi, 8 ta yutuq. 6 ta ish (★1–★5): joylarni tintish, so'roq, **Dalillar taxtasi**da ko'rsatma va dalillarni taqqoslab yolg'onni fosh qilish (yangi savol va joylarni ochadi), avtomatik xronologiya, maslahatlar, ayblov (aybdor + motiv + usul + hal qiluvchi yolg'on), tokenlar va unvonlar. Progress avtomatik saqlanadi. |
+| **Detektiv** | **To'liq 3D o'yin** (Three.js): 3D shtab (ish papkalari), 3D ish xaritasi (shaharcha), 3D jinoyat joylari, 3D so'roq xonasi (personajlar), 3D dalillar taxtasi (kartalar + qizil iplar), 3D sud zali (aybdorni safdan tanlash). "← Orqaga" tugmalari va telefonning orqaga tugmasi ishlaydi. Kunlik mukofot seriyasi, 8 ta yutuq. 3D ishlamasa — 2D ko'rinish. 6 ta ish (★1–★5): joylarni tintish, so'roq, **Dalillar taxtasi**da ko'rsatma va dalillarni taqqoslab yolg'onni fosh qilish (yangi savol va joylarni ochadi), avtomatik xronologiya, maslahatlar, ayblov (aybdor + motiv + usul + hal qiluvchi yolg'on), tokenlar va unvonlar. Progress avtomatik saqlanadi. |
 
 > Bu onlayn baholash; klinik IQ testi (WAIS, Raven SPM) o'rnini bosmaydi. Savol qiyinlik parametrlari ekspert baholashi asosida — haqiqiy ma'lumotlar to'plangach kalibrlash tavsiya etiladi (`js/scoring.js`).
 
@@ -74,7 +74,9 @@ js/admin.js             admin paneli
 js/games.js             trenajyorlar
 js/detective.js         detektiv o'yin dvigateli
 js/cases.js             6 ta detektiv ishi
-js/scene3d.js           3D sahna (Three.js)
+js/det3d.js             3D dvigatel va sahnalar (Three.js)
+js/detective2d.js       2D zaxira ko'rinish
+js/scene3d.js           2D rejimdagi kichik 3D sahna
 js/kids.js              bolalar o'yinlari
 data/premium-users.json Premium a'zolar (xeshlar)
 scripts/premium.mjs     admin CLI
