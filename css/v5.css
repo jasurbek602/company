@@ -1,0 +1,26 @@
+/* =================== v5: dalillar taxtasi — o'qish va yordam =================== */
+.brd-tip { flex: 1 1 260px; font-size: 14px; color: #dfe3ff; line-height: 1.5; align-self: center; }
+.brd-actions { display: flex; gap: 8px; align-items: center; margin-left: auto; align-self: center; }
+.hud-modal.list-modal .hm-card { width: min(860px, 100%); }
+.lgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 8px; }
+.lcard { display: flex; flex-direction: column; gap: 6px; text-align: left; padding: 12px 14px; border-radius: 14px; cursor: pointer; border: 2px solid transparent; font: inherit; color: #1e1733; transition: transform .15s, box-shadow .2s; }
+.lcard:hover { transform: translateY(-2px); }
+.lcard.sc-st { background: #f3edff; }
+.lcard.sc-ev { background: #fff8e4; }
+.lc-head { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 15px; }
+.lc-body { font-size: 15.5px; line-height: 1.5; font-weight: 500; }
+.lc-b { margin-left: auto; font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 8px; color: #fff; }
+.lc-b + .lc-b { margin-left: 4px; }
+.lc-b.sus { background: #ff8a3d; }
+.lc-b.used { background: #ff3b5c; }
+.lc-b.cand { background: #00b8e6; }
+.lc-b.sel { background: #6a48f0; }
+.lcard.ls-sel { border-color: #ff6a00; box-shadow: 0 0 0 4px rgba(255,106,0,.25); }
+.lcard.ls-cand { border-color: #00b8e6; border-style: dashed; animation: candp 1.2s ease-in-out infinite; }
+@keyframes candp { 50% { box-shadow: 0 0 0 5px rgba(0,184,230,.25); } }
+.lcard.ls-used { border-color: #ff3b5c; opacity: .8; }
+.list-foot { position: sticky; bottom: -22px; display: flex; justify-content: center; padding: 12px 0 4px; background: linear-gradient(180deg, rgba(19,19,58,0), #13133a 40%); }
+@media (max-width: 760px) {
+  .lgrid { grid-template-columns: 1fr; }
+  .brd-actions { width: 100%; justify-content: space-between; }
+}

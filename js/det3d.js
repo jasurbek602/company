@@ -37,17 +37,20 @@ export function labelTex(icon, title, sub, color = "#ffc94d") {
   return tex(c);
 }
 // Taxta kartasi
-export function cardTex(kind, icon, head, body, state) {
-  const c = document.createElement("canvas"); c.width = 512; c.height = 320; const g = c.getContext("2d");
-  g.fillStyle = kind === "st" ? "#efe6ff" : "#fff6dc"; rr(g, 0, 0, 512, 320, 18); g.fill();
-  g.fillStyle = kind === "st" ? "#7c5cff" : "#e0a72e"; rr(g, 0, 0, 512, 64, 18); g.fill(); g.fillRect(0, 40, 512, 24);
-  if (state === "sel") { g.lineWidth = 14; g.strokeStyle = "#ff8a3d"; rr(g, 7, 7, 498, 306, 16); g.stroke(); }
-  if (state === "used") { g.lineWidth = 10; g.strokeStyle = "#ff3b5c"; rr(g, 5, 5, 502, 310, 16); g.stroke(); }
-  g.textBaseline = "middle"; g.font = `40px ${EMOJI_FONT}`; g.fillText(icon, 18, 34);
-  g.fillStyle = "#fff"; g.font = "bold 30px Inter, Arial"; g.fillText(head.length > 24 ? head.slice(0, 23) + "…" : head, 72, 34);
-  g.fillStyle = "#2b2340"; g.font = "26px Inter, Arial"; g.textBaseline = "top";
-  wrap(g, kind === "st" ? `"${body}"` : body, 22, 84, 468, 34, 6);
-  if (state === "used") { g.font = "bold 28px Inter, Arial"; g.fillStyle = "#ff3b5c"; g.textBaseline = "bottom"; g.fillText("⚡ YOLG'ON", 340, 312); }
+// state: "" | "sel" (tanlangan) | "used" (fosh qilingan) | "cand" (nomzod — tekshirib ko'ring); sus: shubhali ko'rsatma
+export function cardTex(kind, icon, head, body, state, sus) {
+  const c = document.createElement("canvas"); c.width = 640; c.height = 400; const g = c.getContext("2d");
+  g.fillStyle = kind === "st" ? "#f3edff" : "#fff8e4"; rr(g, 0, 0, 640, 400, 22); g.fill();
+  g.fillStyle = kind === "st" ? "#6a48f0" : "#d9961c"; rr(g, 0, 0, 640, 78, 22); g.fill(); g.fillRect(0, 50, 640, 28);
+  g.textBaseline = "middle"; g.font = `50px ${EMOJI_FONT}`; g.fillText(icon, 20, 41);
+  g.fillStyle = "#fff"; g.font = "bold 38px Inter, Arial"; g.fillText(head.length > 20 ? head.slice(0, 19) + "…" : head, 86, 41);
+  g.fillStyle = "#1e1733"; g.font = "600 34px Inter, Arial"; g.textBaseline = "top";
+  wrap(g, kind === "st" ? `"${body}"` : body, 24, 96, 592, 42, sus || state === "used" ? 5 : 6);
+  if (sus && state !== "used") { g.fillStyle = "#ff8a3d"; rr(g, 380, 340, 244, 46, 14); g.fill(); g.fillStyle = "#fff"; g.font = "bold 28px Inter, Arial"; g.textBaseline = "middle"; g.fillText("🤔 Shubhali", 398, 364); }
+  if (state === "used") { g.fillStyle = "#ff3b5c"; rr(g, 370, 340, 254, 46, 14); g.fill(); g.fillStyle = "#fff"; g.font = "bold 28px Inter, Arial"; g.textBaseline = "middle"; g.fillText("⚡ YOLG'ON", 400, 364); }
+  if (state === "sel") { g.lineWidth = 18; g.strokeStyle = "#ff6a00"; rr(g, 9, 9, 622, 382, 18); g.stroke(); }
+  if (state === "used") { g.lineWidth = 12; g.strokeStyle = "#ff3b5c"; rr(g, 6, 6, 628, 388, 18); g.stroke(); }
+  if (state === "cand") { g.lineWidth = 12; g.setLineDash([26, 16]); g.strokeStyle = "#00b8e6"; rr(g, 8, 8, 624, 384, 18); g.stroke(); g.setLineDash([]); g.fillStyle = "#00b8e6"; rr(g, 24, 340, 230, 46, 14); g.fill(); g.fillStyle = "#fff"; g.font = "bold 26px Inter, Arial"; g.textBaseline = "middle"; g.fillText("❓ Tekshiring", 40, 364); }
   return tex(c);
 }
 
@@ -357,11 +360,12 @@ export function buildInterrogation(suspects, badge, onPick) {
 /* ===================== 5) DALILLAR TAXTASI ===================== */
 export function buildBoard(cards, links, onPick) {
   const K = kit(0x0d0d1c, [14, 30]);
-  K.lights(1.1, 0.9, [0xffe9b8, 14, [0, 3.5, 2]]);
+  K.lights(1.4, 1.1, [0xffe9b8, 18, [0, 3.5, 2]]);
   K.plane(14, 10, 0x2e2622, 0, 0, 0);
   K.box(14, 6, 0.1, 0x30344a, 0, 3, -2);
-  const cols = Math.max(2, Math.min(5, Math.ceil(Math.sqrt(Math.max(1, cards.length) * 1.6)))), rows = Math.max(1, Math.ceil(cards.length / cols));
-  const cw = 1.55, ch = 0.97, gx = 0.22, gy = 0.2;
+  const portrait = innerWidth < 760;
+  const cols = portrait ? Math.min(2, Math.max(1, cards.length)) : Math.max(2, Math.min(4, Math.ceil(Math.sqrt(Math.max(1, cards.length) * 1.4)))), rows = Math.max(1, Math.ceil(cards.length / cols));
+  const cw = 1.9, ch = 1.19, gx = 0.2, gy = 0.18;
   const bw = cols * (cw + gx) + 0.6, bh = rows * (ch + gy) + 0.6;
   const cy = 0.6 + bh / 2 + 0.2;
   K.box(bw + 0.2, bh + 0.2, 0.12, 0x5a3b26, 0, cy, -1.9); K.box(bw, bh, 0.05, 0xb8925a, 0, cy, -1.82);
@@ -369,8 +373,9 @@ export function buildBoard(cards, links, onPick) {
   cards.forEach((c, i) => {
     const col = i % cols, row = Math.floor(i / cols);
     const x = -bw / 2 + 0.3 + cw / 2 + col * (cw + gx), y = cy + bh / 2 - 0.3 - ch / 2 - row * (ch + gy);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(cw, ch), new THREE.MeshStandardMaterial({ map: cardTex(c.kind, c.icon, c.head, c.body, c.state), roughness: 0.9 }));
-    m.position.set(x, y, -1.78); m.rotation.z = ((i * 7919) % 7 - 3) * 0.008; K.scene.add(m);
+    // MeshBasicMaterial — yorug'likka bog'liq emas, kartalar doim aniq o'qiladi
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(cw, ch), new THREE.MeshBasicMaterial({ map: cardTex(c.kind, c.icon, c.head, c.body, c.state, c.sus) }));
+    m.position.set(x, y, -1.78); m.rotation.z = ((i * 7919) % 7 - 3) * 0.006; K.scene.add(m);
     const pin = K.sphere(0.05, c.kind === "st" ? 0x7c5cff : 0xff3b5c, x, y + ch / 2 - 0.08, -1.74, { emissive: 0x330000, emissiveIntensity: 0.4 });
     const data = { card: c, mesh: m, pin, x, y };
     pick.push(pickable(m, data)); meshes.set(c.id, data);
@@ -383,11 +388,18 @@ export function buildBoard(cards, links, onPick) {
   }
   K.lamp(0, 5.3, 0.5);
   // kamerani taxta o'lchamiga moslash (pastki panel uchun joy qoldirib)
-  const aspect = innerWidth < 760 ? 0.75 : 1.7;
-  const dist = (Math.max(bw / aspect, bh * 1.45) / 2) / Math.tan((26 * Math.PI) / 180) * 1.08;
-  const ty = cy - bh * 0.28 - 0.25;
-  return { scene: K.scene, pick, anim: [], meshes, noFit: true, cam: [0, ty + 0.1, -1.8 + dist], target: [0, ty, -1.8], limits: { minD: 1.6, maxD: dist + 3, minA: -0.5, maxA: 0.5, minP: 1.1, maxP: 1.9 }, onPick: (d) => onPick(d),
-    restyle(d, state) { d.mesh.material.map.dispose(); d.mesh.material.map = cardTex(d.card.kind, d.card.icon, d.card.head, d.card.body, state); d.mesh.material.needsUpdate = true; d.mesh.position.z = state === "sel" ? -1.62 : -1.78; d.mesh.scale.setScalar(state === "sel" ? 1.06 : 1); } };
+  const aspect = portrait ? 0.62 : 1.7;
+  // portretda taxta baland bo'ladi — kamera yuqori qismga qaraydi, foydalanuvchi pastga suradi
+  const visH = portrait ? Math.min(bh, 3 * (ch + gy) + 0.6) : bh;
+  const dist = (Math.max(bw / aspect, visH * 1.5) / 2) / Math.tan((26 * Math.PI) / 180) * 1.05;
+  const ty = portrait ? cy + bh / 2 - visH * 0.62 : cy - bh * 0.26 - 0.2;
+  const anim = [(t) => { for (const d of meshes.values()) if (d.pulse) d.mesh.scale.setScalar(1 + Math.sin(t / 260) * 0.025); }];
+  return { scene: K.scene, pick, anim, meshes, noFit: true, alwaysAnimate: false, cam: [0, ty + 0.1, -1.8 + dist], target: [0, ty, -1.8], limits: { minD: 1.4, maxD: dist + 3, minA: -0.5, maxA: 0.5, minP: 1.0, maxP: 2.0 }, onPick: (d) => onPick(d),
+    restyle(d, state, sus) {
+      d.mesh.material.map.dispose(); d.mesh.material.map = cardTex(d.card.kind, d.card.icon, d.card.head, d.card.body, state, sus); d.mesh.material.needsUpdate = true;
+      d.mesh.position.z = state === "sel" ? -1.62 : state === "cand" ? -1.7 : -1.78;
+      d.pulse = state === "cand"; d.mesh.scale.setScalar(state === "sel" ? 1.06 : 1);
+    } };
 }
 
 /* ===================== 6) SUD ZALI ===================== */

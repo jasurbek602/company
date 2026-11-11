@@ -256,46 +256,100 @@ function openSuspect(d) {
 }
 
 /* ===================== 5) DALILLAR TAXTASI ===================== */
-function boardCards() {
-  const usedIds = new Set(st.found.flatMap((f) => [f.a, f.b]));
+// --- yordamchilar: qaysi yolg'onlar hozir topilishi mumkin ---
+const onBoard = (id) => !!stById(id) || (st.seen.has(id) && !!evById(id));
+const pairFound = (k) => st.found.some((f) => (f.a === k.a && f.b === k.b) || (f.a === k.b && f.b === k.a));
+const flagDone = (flag) => st.found.some((f) => f.flag === flag);
+// ochiq qarama-qarshiliklar: ikkala karta taxtada, hali fosh qilinmagan
+const openContra = () => st.c.contra.filter((k) => !pairFound(k) && !flagDone(k.flag) && onBoard(k.a) && onBoard(k.b));
+// faqat yolg'on gapirgan tomon (contra.a — ishlarda doim yolg'onchi ko'rsatmasi) belgilanadi
+function susIds() { const s = new Set(); for (const k of openContra()) { if (stById(k.a)) s.add(k.a); else if (stById(k.b)) s.add(k.b); } return s; }
+function candIds() {
+  if (st.sel.length !== 1) return new Set();
+  const id = st.sel[0]; if (!susIds().has(id)) return new Set();
+  const partners = openContra().filter((k) => k.a === id || k.b === id).map((k) => (k.a === id ? k.b : k.a));
+  // bitta chalg'ituvchi karta — o'yinchi baribir o'ylashi kerak
+  const others = boardCards(true).map((c) => c.id).filter((x) => x !== id && !partners.includes(x) && evById(x));
+  const decoy = others.length ? others[(id.length * 7 + others.length) % others.length] : null;
+  return new Set([...partners, ...(decoy ? [decoy] : [])]);
+}
+function stateOf(id, cand) { return st.sel.includes(id) ? "sel" : st.found.some((f) => f.a === id || f.b === id) ? "used" : cand.has(id) ? "cand" : ""; }
+function boardCards(raw) {
   const stc = st.statements.map((s) => ({ id: s.id, kind: "st", icon: s.face, head: s.who, body: s.text }));
   const evc = allEv().filter((e) => st.seen.has(e.id)).map((e) => ({ id: e.id, kind: "ev", icon: e.ico, head: e.name, body: e.clue }));
-  return [...stc, ...evc].map((c) => ({ ...c, state: st.sel.includes(c.id) ? "sel" : usedIds.has(c.id) ? "used" : "" }));
+  const all = [...stc, ...evc];
+  if (raw) return all;
+  const sus = susIds(), cand = candIds();
+  return all.map((c) => ({ ...c, state: stateOf(c.id, cand), sus: sus.has(c.id) }));
 }
 function sceneBoard() {
   const cards = boardCards();
-  built = buildBoard(cards, st.found.map((f) => [f.a, f.b]), (d) => toggleCard(d));
+  built = buildBoard(cards, st.found.map((f) => [f.a, f.b]), (d) => selectCard(d.card.id));
   eng.set(built);
-  topbar({ back: `#/detective/${st.c.id}`, backTxt: "Xarita", title: "🧷 Dalillar taxtasi", sub: `${cards.length} karta · ⚡ ${flagsFound()}/${flagsTotal()}`, extra: `<button class="hud-btn" id="hTime" title="Xronologiya">🕒</button>` });
+  topbar({ back: `#/detective/${st.c.id}`, backTxt: "Xarita", title: "🧷 Dalillar taxtasi", sub: `${cards.length} karta · ⚡ ${flagsFound()}/${flagsTotal()}`, extra: `<button class="hud-btn" id="hList" title="Ro'yxat ko'rinishi">📋</button><button class="hud-btn" id="hTime" title="Xronologiya">🕒</button>` });
   $("#hTime").onclick = timelineModal;
+  $("#hList").onclick = listModal;
   if (cards.length < 2) panel(`<span>Taxtada hali yetarli karta yo'q. Joylarni tinting va so'roq qiling — <b>ko'rsatmalar</b> (binafsha) va <b>dalillar</b> (sariq) shu yerga ilinadi.</span>`, "p-hint");
   else boardPanel();
 }
-function toggleCard(d) {
-  const id = d.card.id;
+function selectCard(id) {
   if (st.sel.includes(id)) st.sel = st.sel.filter((x) => x !== id);
-  else { if (st.sel.length === 2) { const old = built.meshes.get(st.sel.shift()); old && built.restyle(old, usedState(old.card.id)); } st.sel.push(id); }
-  built.restyle(d, st.sel.includes(id) ? "sel" : usedState(id));
-  boardPanel();
+  else { if (st.sel.length === 2) st.sel.shift(); st.sel.push(id); }
+  restyleAll(); boardPanel();
+  if ($("#modal").classList.contains("show")) listModal();
 }
-const usedState = (id) => (st.found.some((f) => f.a === id || f.b === id) ? "used" : "");
+function restyleAll() {
+  if (!built?.meshes) return;
+  const sus = susIds(), cand = candIds();
+  for (const d of built.meshes.values()) {
+    const s = stateOf(d.card.id, cand), u = sus.has(d.card.id);
+    if (d._s !== s || d._u !== u) { built.restyle(d, s, u); d._s = s; d._u = u; }
+  }
+}
 function boardPanel() {
   const get = (id) => built.meshes.get(id)?.card;
   const sel = st.sel.map(get).filter(Boolean);
-  const p = panel(`${sel.length ? sel.map((c) => `<div class="selcard sc-${c.kind}"><b>${c.icon} ${esc(c.head)}</b><p>${c.kind === "st" ? `"${esc(c.body)}"` : esc(c.body)}</p></div>`).join("") : `<span>Bir-biriga <b>zid</b> ikki kartani bosing (ko'rsatma + dalil yoki ikki ko'rsatma). Noto'g'ri taqqoslash ballni kamaytiradi.</span>`}
-    <button class="btn gold" id="cmp" ${sel.length === 2 ? "" : "disabled"}>⚡ Taqqoslash (${sel.length}/2)</button>`, "p-brd");
+  const nSus = susIds().size, cand = candIds();
+  let tip = "";
+  if (!sel.length) tip = nSus ? `🤔 Taxtada <b>${nSus} ta shubhali</b> ko'rsatma bor (to'q sariq belgi). Shubhali kartani bosing — tekshirish kerak bo'lgan dalillar <b>❓ ko'k</b> bilan yonadi.` : `Hozircha fosh qilinadigan yolg'on yo'q. Ko'proq <b>joylarni tinting</b> va <b>so'roq</b> qiling — yangi kartalar paydo bo'ladi.`;
+  else if (sel.length === 1) tip = cand.size ? `👉 Endi <b>❓ ko'k</b> belgili kartalardan birini tanlang — ulardan biri bu gapga zid.` : `Bu kartaga zid keladigan ikkinchi kartani tanlang.`;
+  const p = panel(`${sel.map((c) => `<div class="selcard sc-${c.kind}"><b>${c.icon} ${esc(c.head)}</b><p>${c.kind === "st" ? `"${esc(c.body)}"` : esc(c.body)}</p></div>`).join("")}${tip ? `<span class="brd-tip">${tip}</span>` : ""}
+    <div class="brd-actions"><button class="btn ghost sm" id="openList">📋 Ro'yxat</button><button class="btn gold" id="cmp" ${sel.length === 2 ? "" : "disabled"}>⚡ Taqqoslash (${sel.length}/2)</button></div>`, "p-brd");
   p.querySelector("#cmp").onclick = compare;
+  p.querySelector("#openList").onclick = listModal;
+}
+// Katta matnli ro'yxat (telefonda o'qish oson)
+function listModal() {
+  const cards = boardCards();
+  const badge = (c) => (c.state === "used" ? `<span class="lc-b used">⚡ Yolg'on</span>` : c.state === "sel" ? `<span class="lc-b sel">✓ Tanlandi</span>` : c.state === "cand" ? `<span class="lc-b cand">❓ Tekshiring</span>` : "") + (c.sus && c.state !== "used" ? `<span class="lc-b sus">🤔 Shubhali</span>` : "");
+  const item = (c) => `<button class="lcard sc-${c.kind} ${c.state ? "ls-" + c.state : ""}" data-id="${c.id}"><span class="lc-head">${c.icon} <b>${esc(c.head)}</b>${badge(c)}</span><span class="lc-body">${c.kind === "st" ? `"${esc(c.body)}"` : esc(c.body)}</span></button>`;
+  const stc = cards.filter((c) => c.kind === "st"), evc = cards.filter((c) => c.kind === "ev");
+  const none = `<p class="muted small">Hali yo'q</p>`;
+  const m = modal(`<div class="row" style="justify-content:space-between"><h2 style="margin:0">🧷 Taxta — ro'yxat</h2><button class="hud-btn sm" data-close>✕</button></div>
+    <p class="muted small">Ikkita kartani tanlang va taqqoslang. ${st.sel.length}/2 tanlandi.</p>
+    <h4>🗣 Ko'rsatmalar</h4><div class="lgrid">${stc.map(item).join("") || none}</div>
+    <h4>🔍 Dalillar</h4><div class="lgrid">${evc.map(item).join("") || none}</div>
+    <div class="list-foot"><button class="btn gold" id="cmp2" ${st.sel.length === 2 ? "" : "disabled"}>⚡ Taqqoslash (${st.sel.length}/2)</button></div>`, "wide list-modal");
+  m.querySelectorAll(".lcard").forEach((b) => (b.onclick = () => selectCard(b.dataset.id)));
+  m.querySelector("#cmp2").onclick = () => { closeModal(); compare(); };
 }
 function compare() {
   const [x, y] = st.sel; st.actions++;
   const hit = st.c.contra.find((k) => (k.a === x && k.b === y) || (k.a === y && k.b === x));
-  if (hit && !st.found.some((f) => f.a === hit.a && f.b === hit.b)) {
+  if (hit && !pairFound(hit)) {
     const isNew = !st.known.has(hit.flag);
     st.found.push({ a: hit.a, b: hit.b, insight: hit.insight, flag: hit.flag }); st.known.add(hit.flag); st.sel = []; save();
     sceneBoard(); refreshNotebook();
     flash("⚡ YOLG'ON FOSH QILINDI", hit.insight + (isNew ? "\n\nYangi savollar va dalillar ochildi!" : ""), true);
-  } else if (hit) { toast("Bu qarama-qarshilik allaqachon topilgan"); st.sel = []; sceneBoard(); }
-  else { st.wrong++; st.sel = []; save(); sceneBoard(); flash("✗ Zid emas", "Bu ikki narsa bir-biriga zid kelmaydi. Ehtiyot bo'ling — noto'g'ri ayblovlar ishonchni kamaytiradi.", false); }
+    return;
+  }
+  if (hit) { toast("Bu qarama-qarshilik allaqachon topilgan"); st.sel = []; sceneBoard(); return; }
+  const near = openContra().some((k) => [k.a, k.b].includes(x) || [k.a, k.b].includes(y));
+  const keep = near ? st.sel.find((id) => susIds().has(id)) : null;
+  st.sel = keep ? [keep] : [];
+  if (near) { save(); restyleAll(); boardPanel(); flash("🔥 Yaqin!", "Kartalardan biri haqiqatan shubhali — lekin bu ikkisi bir-biriga zid emas. Uning juftini boshqa kartalar orasidan qidiring (❓ ko'k belgili kartalarga qarang).\n\nBu urinish hisobga olinmadi.", true); return; }
+  st.wrong++; save(); restyleAll(); boardPanel();
+  flash("✗ Zid emas", "Bu ikki karta bir-biriga zid kelmaydi. Maslahat: avval 🤔 Shubhali belgili ko'rsatmani tanlang.", false);
 }
 function timelineModal() {
   const ev = [...allEv().filter((e) => st.seen.has(e.id) && e.time).map((e) => ({ time: e.time, t: `${e.ico} ${e.clue}` })), ...st.clues.filter((x) => x.time && !allEv().some((e) => e.clue === x.t)).map((x) => ({ time: x.time, t: "🗣 " + x.t }))];
