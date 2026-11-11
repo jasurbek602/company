@@ -1,0 +1,16 @@
+{
+  "contact": "",
+  "admin": {
+    "salt": "bbece41c2bbc826ae7e10c9c",
+    "hash": "67a505a49aca4809aa767c002df5922b6f65381881346b1865b6649fa97547b7"
+  },
+  "users": [
+    {
+      "login": "demo",
+      "name": "Demo Premium",
+      "salt": "b698f5f32fb03c0b27a872d8",
+      "hash": "a19de43e7a4a5e25178f508e01a368c6ccc7547b072ed5f55a1abc26ac9f967b",
+      "created": "2026-11-11"
+    }
+  ]
+}

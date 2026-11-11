@@ -7,7 +7,12 @@
   "scripts": {
     "dev": "npx --yes serve -l 5173 .",
     "dev:full": "npx --yes vercel dev",
-    "check": "node scripts/check-questions.mjs"
+    "check": "node scripts/check-questions.mjs",
+    "admin": "node scripts/premium.mjs admin",
+    "add-premium": "node scripts/premium.mjs add",
+    "contact": "node scripts/premium.mjs contact"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

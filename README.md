@@ -1,81 +1,79 @@
 # Company IQ 🧠
 
-Har bir foydalanuvchiga **alohida (tasodifiy) savollar** beradigan IQ test sayti: Google orqali kirish, natijalar bazada, 5 bandli bepul tahlil, Premium (chuqur tahlil, miya o'yinlari, Detektiv bo'limi).
+Moslashuvchan (adaptiv) IQ test sayti: har bir foydalanuvchiga **noyob savollar**, natija **IRT psixometrik modeli** asosida yosh normasi va ishonch oralig'i bilan. Reyting, Premium a'zolar bo'limi, miya trenajyorlari va to'liq Detektiv o'yini.
 
-- **Frontend:** toza HTML/CSS/JS (ES modullar), build kerak emas
-- **Auth + DB:** Supabase (Google OAuth, Postgres, RLS)
-- **To'lov:** Stripe Checkout, faqat **test rejimi** (`sk_test_...`), haqiqiy pul yechilmaydi
-- **Deploy:** Vercel (statik fayllar + `api/` serverless funksiyalari)
+**Demo:** https://jasurbek602.github.io/company/
+
+- **Frontend:** toza HTML/CSS/JS (ES modullar), build kerak emas — GitHub Pages / Vercel / istalgan statik hosting
+- **Ma'lumotlar:** Supabase ulansa — umumiy reyting bazada; ulanmasa — hammasi qurilmada (localStorage), sayt baribir to'liq ishlaydi
+- **Premium:** admin bergan login/parol (parollar faqat SHA-256 xesh ko'rinishida saqlanadi)
 
 ## Imkoniyatlar
 
 | Bo'lim | Tavsif |
 |---|---|
-| IQ test | 32 savol, 25 daqiqa, 4 yo'nalish: Raven uslubidagi matritsalar (SVG), son/harf ketma-ketliklari, mantiq/so'z, fazoviy (aylantirish, kub yoyilmasi). Savollar protsedurali generatsiya qilinadi, qiyinlik 1→5 ga oshadi. |
-| Baholash | Qiyinlikka qarab og'irlikli ball → z-ball → IQ = 100 + 15·z (55–160), persentil, normal taqsimot grafigi. |
-| Bepul tahlil | 5 band: umumiy natija, kuchli tomon, zaif tomon, ishlash uslubi/tezlik, murakkab savollardagi natija. |
-| Premium | Chuqur tahlil (Gf, Gc, ishchi xotira, tezlik indekslari, 4 haftalik reja, kasblar), cheksiz test, miya o'yinlari, Detektiv. |
-| Miya o'yinlari | Schulte jadvali, Xotira panjarasi, Stroop, Tezkor hisob. |
-| Detektiv | 3 ta ish: dalillarni tekshirish, gumonlanuvchilarni so'roq qilish (dalil topilgach ⚡ to'qnashtirish savollari ochiladi), bloknot, yakuniy xulosa (aybdor + motiv + dalil) → token. |
+| **IQ test** | 36 savol, 30 daqiqa, 7 qiyinlik darajasi, 11 savol turi: Raven matritsalari (shakl qoidalari + XOR/AND/OR mantiqiy amallar), ko'p qatlamli son ketma-ketliklari, sonli jadvallar, analogiyalar, sillogizmlar, rostgo'y/yolg'onchi jumboqlari, o'rindiq masalalari (yagona yechim avtomatik tekshiriladi), shifrlar, shakl aylantirish, kub yoyilmasi, qog'oz buklash. |
+| **Adaptivlik** | Har javobdan keyin qobiliyat (θ) qayta baholanadi va keyingi savol shu darajadan beriladi. |
+| **Baholash** | 3PL IRT modeli, EAP baho → IQ = 100 + 15·θ, yosh normasi, 95% ishonch oralig'i, persentil. Simulyatsiyada xato ≈ ±4 IQ. |
+| **Ism + yosh** | Test oldidan kiritiladi, natija reytingga tushadi. |
+| **Reyting** | Bosh sahifada TOP-10, alohida sahifada yosh guruhlari bo'yicha filtr. |
+| **Bepul tahlil** | 5 band: umumiy natija, kuchli/zaif yo'nalish, ishlash uslubi, murakkab savollar. |
+| **Premium** | Cheksiz test, chuqur tahlil (4 kognitiv indeks, reja, kasblar), 7 trenajyor, 6 detektiv ishi. |
+| **Trenajyorlar** | Dual N-Back (adaptiv daraja), IQ trener (cheksiz, adaptiv), Aylantirish, Schulte, Xotira panjarasi, Stroop, Tezkor hisob. Rekordlar va kunlik seriya. |
+| **Detektiv** | 6 ta ish (★1–★5): joylarni tintish, so'roq, **Dalillar taxtasi**da ko'rsatma va dalillarni taqqoslab yolg'onni fosh qilish (yangi savol va joylarni ochadi), avtomatik xronologiya, maslahatlar, ayblov (aybdor + motiv + usul + hal qiluvchi yolg'on), tokenlar va unvonlar. Progress avtomatik saqlanadi. |
 
-> IQ natijasi taxminiy — klinik psixometrik test emas. Norma parametrlari `js/scoring.js` dagi `NORM_MEAN`/`NORM_SD` da; haqiqiy foydalanuvchi ma'lumotlari to'plangach qayta kalibrlash tavsiya etiladi.
+> Bu onlayn baholash; klinik IQ testi (WAIS, Raven SPM) o'rnini bosmaydi. Savol qiyinlik parametrlari ekspert baholashi asosida — haqiqiy ma'lumotlar to'plangach kalibrlash tavsiya etiladi (`js/scoring.js`).
 
 ## Lokal ishga tushirish
-
-### 1) Demo rejim (hech qanday kalitsiz)
 ```bash
 npm run dev
 ```
-http://localhost:5173 — "Demo kirish" tugmasi, natijalar `localStorage` da saqlanadi, Premium tugmasi darhol faollashtiradi.
+http://localhost:5173 — hech qanday kalitsiz ishlaydi.
 
-### 2) Haqiqiy Supabase bilan
-1. `js/config.example.js` ni `js/config.js` ga nusxalang va `SUPABASE_URL`, `SUPABASE_ANON_KEY` ni yozing (`js/config.js` gitignore qilingan).
-2. `npm run dev`
+Savollar generatorini tekshirish (11 200 ta savol):
+```bash
+npm run check
+```
 
-Stripe to'lovini lokal sinash uchun: `npm run dev:full` (Vercel CLI, `.env` dan o'qiydi — `.env.example` ga qarang).
+## Premium foydalanuvchilar (admin)
 
-Savollar generatorini tekshirish: `npm run check`
+Parollar hech qachon repozitoriyga tushmaydi: `data/premium-users.json` da faqat tuz (salt) va SHA-256 xesh saqlanadi, ochiq parollar `secrets/credentials.txt` ga yoziladi (gitignore qilingan).
 
-## Sozlash
+```bash
+npm run admin                                # admin parolini yaratish/yangilash
+npm run add-premium -- ali2026 "Ali Valiyev" # yangi Premium a'zo (parol secrets/credentials.txt da)
+node scripts/premium.mjs remove ali2026      # a'zoni o'chirish
+npm run contact -- https://t.me/username     # "Admin bilan bog'lanish" havolasi
+```
+So'ng `git commit` + `git push` — GitHub Pages avtomatik yangilanadi.
 
-### Supabase
-1. [supabase.com](https://supabase.com) → yangi loyiha.
-2. **SQL Editor** → `supabase/schema.sql` ni to'liq ishga tushiring (jadvallar, RLS, trigger, `add_tokens` RPC).
-3. **Project Settings → API**: `Project URL`, `anon public` va `service_role` kalitlarini oling.
+Brauzerda ham mumkin: `#/admin` sahifasi (admin paroli bilan) — login va kuchli parol yaratadi, yangilangan `premium-users.json` faylini yuklab beradi.
 
-### Google OAuth
-1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → **Create credentials → OAuth client ID** → *Web application*.
-2. **Authorized redirect URI:** `https://<loyiha-ref>.supabase.co/auth/v1/callback`
-3. Client ID va Secret ni Supabase → **Authentication → Providers → Google** ga kiriting va yoqing.
-4. Supabase → **Authentication → URL Configuration**: *Site URL* = sayt manzili (masalan `https://company-iq.vercel.app`), *Redirect URLs* ga `http://localhost:5173` ni ham qo'shing.
+Foydalanuvchi **Premium** sahifasida login/parol bilan kiradi; sessiya qurilmada saqlanadi (chiqib ketsa ham), lekin har safar ro'yxat bilan tekshiriladi — o'chirilgan a'zo avtomatik chiqariladi.
 
-### Stripe (test rejim)
-1. [dashboard.stripe.com](https://dashboard.stripe.com) → **Test mode** → Developers → API keys → `sk_test_...`.
-2. Test karta: `4242 4242 4242 4242`, istalgan kelajak sana va CVC.
-3. Server faqat `sk_test_` bilan boshlanuvchi kalitni qabul qiladi.
+## Umumiy reyting uchun Supabase (ixtiyoriy)
+1. [supabase.com](https://supabase.com) → yangi loyiha → **SQL Editor** → `supabase/schema.sql` ni ishga tushiring.
+2. `js/config.example.js` ni `js/config.js` ga nusxalang, `SUPABASE_URL` va `SUPABASE_ANON_KEY` ni yozing.
+   - GitHub Pages uchun `js/config.js` ni commit qilish kerak (anon kalit ommaviy, RLS bilan himoyalangan) — `.gitignore` dan olib tashlang.
+   - Vercel'da esa env o'zgaruvchilar (`.env.example`) orqali `api/config.js` beradi.
+3. Shundan so'ng reyting barcha foydalanuvchilar uchun umumiy bo'ladi.
 
-### Vercel'ga deploy
-1. [vercel.com/new](https://vercel.com/new) → shu repozitoriyni import qiling (Framework: *Other*, build buyrug'i kerak emas).
-2. Environment Variables (`.env.example` ga qarang): `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `SITE_URL`.
-3. Deploy. `js/config.js` Vercel'da `api/config.js` orqali env dan avtomatik beriladi.
-
-## Xavfsizlik
-- Maxfiy kalitlar (`SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`) faqat serverda; repozitoriyga hech qanday kalit commit qilinmaydi.
-- RLS: foydalanuvchi faqat o'z natijalarini ko'radi/qo'shadi; `profiles` ni mijoz o'zgartira olmaydi.
-- Premium faqat server Stripe sessiyasini (`paid` + `client_reference_id`) tekshirgandan keyin yoqiladi.
-- Bepul foydalanuvchi uchun 1 ta natija limiti DB trigger bilan ham ta'minlangan.
+Google orqali kirish (ixtiyoriy) uchun: Google Cloud Console → OAuth client → redirect `https://<ref>.supabase.co/auth/v1/callback` → Supabase → Authentication → Providers → Google.
 
 ## Tuzilma
 ```
-index.html            SPA qobig'i
-css/style.css         dizayn va animatsiyalar
-js/app.js             router, test, natija, profil
-js/questions.js       savollar generatori
-js/scoring.js         IQ hisoblash va tahlil
-js/db.js              Supabase / demo ma'lumot qatlami
-js/games.js           miya o'yinlari
-js/detective.js       Detektiv ishlari
-js/premium.js         tariflar va Stripe
-api/                  Vercel funksiyalari (checkout, confirm, config)
-supabase/schema.sql   DB sxemasi
+index.html              SPA qobig'i
+css/style.css, v2.css   dizayn va animatsiyalar
+js/app.js               router, test (adaptiv), natija, reyting
+js/questions.js         savollar generatori (7 daraja)
+js/scoring.js           IRT baholash, yosh normasi, tahlil
+js/db.js                ma'lumotlar qatlami, Premium kirish
+js/premium.js           Premium bo'limi va kabinet
+js/admin.js             admin paneli
+js/games.js             trenajyorlar
+js/detective.js         detektiv o'yin dvigateli
+js/cases.js             6 ta detektiv ishi
+data/premium-users.json Premium a'zolar (xeshlar)
+scripts/premium.mjs     admin CLI
+supabase/schema.sql     DB sxemasi
 ```

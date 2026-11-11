@@ -94,3 +94,25 @@ begin
 end $$;
 revoke all on function public.add_tokens(integer) from public, anon;
 grant execute on function public.add_tokens(integer) to authenticated;
+
+-- 4) UMUMIY REYTING (ism + yosh + IQ). Ixtiyoriy Google kirishsiz ham yoziladi.
+create table if not exists public.ratings (
+  id bigint generated always as identity primary key,
+  name text not null check (char_length(name) between 2 and 40),
+  age integer check (age between 7 and 99),
+  iq integer not null check (iq between 40 and 175),
+  percentile numeric,
+  user_id uuid references auth.users(id) on delete set null,
+  details jsonb,
+  created_at timestamptz not null default now()
+);
+create index if not exists ratings_iq_idx on public.ratings(iq desc, created_at);
+alter table public.ratings enable row level security;
+drop policy if exists "ratings public read" on public.ratings;
+create policy "ratings public read" on public.ratings for select using (true);
+drop policy if exists "ratings insert" on public.ratings;
+create policy "ratings insert" on public.ratings for insert to anon, authenticated with check (user_id is null or user_id = auth.uid());
+-- details ustunini ommaga ko'rsatmaslik uchun:
+revoke select on public.ratings from anon, authenticated;
+grant select (id, name, age, iq, percentile, created_at) on public.ratings to anon, authenticated;
+grant insert on public.ratings to anon, authenticated;
