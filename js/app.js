@@ -5,6 +5,7 @@ import { renderGames } from "./games.js";
 import { renderDetective } from "./detective.js";
 import { renderPremium } from "./premium.js";
 import { renderAdmin } from "./admin.js";
+import { renderKids } from "./kids.js";
 
 const $ = (s, r = document) => r.querySelector(s);
 const app = $("#app");
@@ -50,7 +51,7 @@ export const setCleanup = (f) => {
 };
 const routes = {
   "": home, test: testIntro, result: resultView, me: myPage, rating: ratingPage,
-  vip: () => renderPremium(app), admin: () => renderAdmin(app),
+  vip: () => renderPremium(app), admin: () => renderAdmin(app), kids: () => renderKids(app),
   games: () => gate("Miya o'yinlari", () => renderGames(app)),
   detective: () => gate("Detektiv byurosi", () => renderDetective(app)),
 };
@@ -132,11 +133,13 @@ async function home() {
     ${Object.entries(CATEGORIES).map(([k, c], i) => `<div class="card feature reveal" style="transition-delay:${i * 80}ms"><div class="ico">${c.icon}</div><h3>${c.name}</h3><p>${{ matrix: "Raven matritsalari: shakl, son, to'ldirish, burilish qoidalari va XOR/AND mantiqiy amallar.", numeric: "Ko'p qatlamli ketma-ketliklar, sonli jadvallar, analogiyalar va harf qatorlari.", verbal: "Sillogizmlar, rostgo'y-yolg'onchi jumboqlari, o'rindiq masalalari, shifrlar.", spatial: "Shakllarni aylantirish, kub yoyilmasi, qog'oz buklash va teshish." }[k]}</p></div>`).join("")}
   </div>
 
+  <a href="#/kids" class="kids-banner reveal"><span class="kb-owl">🦉</span><div><b>Bilimdon bola — bolalar uchun bepul!</b><span>Sanash, hisob, harflar, mantiq, ranglar va xotira o'yinlari (4–10 yosh)</span></div><span class="kb-go">O'ynash →</span></a>
+
   <h2 class="section-title reveal">Premium bilan yanada chuqurroq</h2>
   <div class="grid g3">
     <a href="#/vip" class="card feature reveal" style="text-decoration:none"><span class="tag gold lock">👑</span><div class="ico">📊</div><h3>Chuqur tahlil</h3><p>4 ta kognitiv indeks, kategoriyalar bo'yicha IQ, 4 haftalik shaxsiy reja.</p></a>
     <a href="#/games" class="card feature reveal" style="text-decoration:none;transition-delay:80ms"><span class="tag gold lock">👑</span><div class="ico">🎮</div><h3>Miya trenajyorlari</h3><p>Dual N-Back (ilmiy asoslangan), IQ trener, Aylantirish, Schulte, Stroop va boshqalar.</p></a>
-    <a href="#/detective" class="card feature reveal" style="text-decoration:none;transition-delay:160ms"><span class="tag gold lock">👑</span><div class="ico">🕵️</div><h3>Detektiv byurosi</h3><p>6 ta ish: joylarni tinting, so'roq qiling, qarama-qarshiliklarni fosh qiling, unvon oling.</p></a>
+    <a href="#/detective" class="card feature reveal" style="text-decoration:none;transition-delay:160ms"><span class="tag gold lock">👑</span><div class="ico">🕵️</div><h3>3D Detektiv byurosi</h3><p>6 ta ish: 3D jinoyat joylarini tinting, so'roq qiling, yolg'onni fosh qiling, unvon va kunlik mukofotlar oling.</p></a>
   </div>
   </div>`;
   document.querySelectorAll("[data-count]").forEach((el) => { const to = +el.dataset.count; let v = 0; const iv = setInterval(() => { el.textContent = ++v; if (v >= to) clearInterval(iv); }, 90); });

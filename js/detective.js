@@ -1,6 +1,23 @@
 import * as db from "./db.js";
 import { toast, confetti, esc } from "./app.js";
 import { CASES, RANKS } from "./cases.js";
+import { mountScene, webglOK } from "./scene3d.js";
+
+let scn = null; // joriy 3D sahna
+const disposeScene = () => { if (scn) { scn.dispose(); scn = null; } };
+const use3D = () => { try { return localStorage.getItem("det3d") !== "0" && webglOK(); } catch { return webglOK(); } };
+const today = () => new Date().toISOString().slice(0, 10);
+
+const ACH = [
+  { id: "first", ico: "🥉", t: "Birinchi ish", d: "1 ta ishni yeching", ok: (x) => x.solved >= 1 },
+  { id: "three", ico: "🥈", t: "Tajribali tergovchi", d: "3 ta ishni yeching", ok: (x) => x.solved >= 3 },
+  { id: "all", ico: "🥇", t: "Barcha sirlar", d: "6 ta ishning hammasini yeching", ok: (x) => x.solved >= 6 },
+  { id: "perfect", ico: "💯", t: "Mukammal", d: "Biror ishni 100% bilan yeching", ok: (x) => x.best >= 100 },
+  { id: "nohint", ico: "🧠", t: "Maslahatsiz", d: "Ishni maslahatsiz yeching", ok: (x) => x.nohint },
+  { id: "rich", ico: "💰", t: "Boy detektiv", d: "300 token to'plang", ok: (x) => x.tokens >= 300 },
+  { id: "loyal", ico: "🔥", t: "Sodiq", d: "3 kun ketma-ket kiring", ok: (x) => x.streak >= 3 },
+  { id: "week", ico: "📅", t: "Haftalik qahramon", d: "7 kun ketma-ket kiring", ok: (x) => x.streak >= 7 },
+];
 
 export function rankOf(tokens) {
   let r = RANKS[0];
@@ -26,6 +43,7 @@ export async function renderDetective(app, caseId) {
           <div class="track mt" style="max-width:420px"><div class="fill" style="width:${prog}%"></div></div></div>
         <div class="tokens big-tokens">🪙 ${p.tokens}</div>
       </section>
+      ${dailyBox()}
       <p class="muted mt">Joylarni tinting, gumonlanuvchilarni so'roq qiling, <b>Dalillar taxtasi</b>da yolg'onni fosh qiling — har bir fosh qilingan qarama-qarshilik yangi eshiklarni ochadi. Keyingi ish oldingisi yechilgach ochiladi.</p>
       <div class="grid g3 mt">${CASES.map((x, i) => {
         const s = solved.find((y) => y.case_id === x.id);
@@ -39,8 +57,12 @@ export async function renderDetective(app, caseId) {
           <div class="row"><span class="tag tokens">🪙 ${x.reward}</span>${s ? `<span class="tag ok-tag">✓ ${s.score}%</span>` : inProg ? `<span class="tag">⏳ Davom etmoqda</span>` : ""}</div>
           ${s ? `<div class="stamp">YECHILDI</div>` : ""}
         </button>`;
-      }).join("")}</div></div>`;
+      }).join("")}</div>
+      <h2 class="section-title" style="margin-top:40px">🏆 Yutuqlar</h2>
+      <div class="ach-grid">${achList(p, solved).map((a) => `<div class="ach ${a.got ? "got" : ""}"><span class="ach-ico">${a.got ? a.ico : "🔒"}</span><b>${a.t}</b><small>${a.d}</small></div>`).join("")}</div></div>`;
     app.querySelectorAll("[data-case]").forEach((b) => (b.onclick = () => openCase(app, b.dataset.case)));
+    const dl = app.querySelector("#daily"); if (dl) dl.onclick = async () => { const r = claimDaily(); if (r) { await db.addTokens(r.amount); confetti(60); toast(`🎁 +${r.amount} token! Seriya: ${r.streak} kun`); renderDetective(app); } };
+    tilt(app);
     requestAnimationFrame(() => app.querySelectorAll(".reveal").forEach((e) => e.classList.add("in")));
     return;
   }
@@ -50,11 +72,40 @@ export async function renderDetective(app, caseId) {
     seen: new Set(saved?.seen || []), asked: new Set(saved?.asked || []), known: new Set(saved?.known || []),
     clues: saved?.clues || [], statements: saved?.statements || [], found: saved?.found || [],
     chats: saved?.chats || {}, actions: saved?.actions || 0, wrong: saved?.wrong || 0, hints: saved?.hints || 0,
-    openLoc: null, sel: [], done: solved.some((y) => y.case_id === c.id), result: null,
+    openLoc: null, curLoc: c.locations[0].id, sel: [], done: solved.some((y) => y.case_id === c.id), result: null,
   };
   draw(app);
 }
-function openCase(app, id) { app.innerHTML = ""; renderDetective(app, id); app.firstElementChild?.classList.add("view"); window.scrollTo({ top: 0 }); }
+function dailyState() { return db.vipGet("daily", { last: null, streak: 0 }); }
+function dailyBox() {
+  const d = dailyState();
+  const claimed = d.last === today();
+  const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+  const next = claimed ? d.streak : d.last === y ? d.streak + 1 : 1;
+  const amount = 10 + 5 * Math.min(next - 1, 6);
+  return `<section class="card daily mt"><div class="row" style="gap:14px"><span class="daily-ico">🎁</span><div><b>Kunlik mukofot</b><div class="muted small">Har kuni kiring — seriya oshgan sari mukofot ko'payadi (maks. 40 🪙).</div>
+    <div class="streak">${[1, 2, 3, 4, 5, 6, 7].map((i) => `<span class="${i <= (claimed ? d.streak : next - 1) ? "on" : ""}">${i}</span>`).join("")}</div></div></div>
+    ${claimed ? `<span class="tag ok-tag">✓ Bugun olindi · ${d.streak} kun</span>` : `<button class="btn gold" id="daily">+${amount} 🪙 olish</button>`}</section>`;
+}
+function claimDaily() {
+  const d = dailyState(); if (d.last === today()) return null;
+  const y = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+  const streak = d.last === y ? d.streak + 1 : 1;
+  db.vipSet("daily", { last: today(), streak });
+  return { amount: 10 + 5 * Math.min(streak - 1, 6), streak };
+}
+function achList(p, solved) {
+  const x = { solved: solved.length, best: Math.max(0, ...solved.map((s) => s.score)), nohint: db.vipGet("ach_nohint", false), tokens: p.tokens, streak: dailyState().streak };
+  return ACH.map((a) => ({ ...a, got: a.ok(x) }));
+}
+function tilt(root) {
+  if (matchMedia("(pointer: coarse)").matches) return;
+  root.querySelectorAll(".case-card:not(.locked)").forEach((c) => {
+    c.addEventListener("mousemove", (e) => { const r = c.getBoundingClientRect(); const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5; c.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateY(-4px)`; });
+    c.addEventListener("mouseleave", () => (c.style.transform = ""));
+  });
+}
+function openCase(app, id) { disposeScene(); app.innerHTML = ""; renderDetective(app, id); app.firstElementChild?.classList.add("view"); window.scrollTo({ top: 0 }); }
 function save() {
   if (st.done) return;
   db.vipSet("dstate_" + st.c.id, { seen: [...st.seen], asked: [...st.asked], known: [...st.known], clues: st.clues, statements: st.statements, found: st.found, chats: st.chats, actions: st.actions, wrong: st.wrong, hints: st.hints });
@@ -68,6 +119,7 @@ function pulseNotebook() { toast("🔎 Bloknotga yangi iz"); }
 
 /* ======================= Asosiy ekran ======================= */
 function draw(app) {
+  disposeScene();
   const { c } = st;
   const tabs = [["brief", "📋 Ish"], ["loc", "🔍 Joylar"], ["sus", "🗣 So'roq"], ["board", "🧷 Taxta"], ["time", "🕒 Xronologiya"], ["solve", "⚖️ Ayblov"]];
   const totalEv = allEv().length;
@@ -82,18 +134,58 @@ function draw(app) {
   app.innerHTML = `<div class="${anim ? "view " : ""}det-room">
     <div class="row" style="justify-content:space-between;margin-bottom:12px">
       <div><div class="case-num">ISH №${String(CASES.indexOf(c) + 1).padStart(3, "0")} · ${"★".repeat(c.diff)}</div><h2 style="margin:4px 0 0">${c.ico} ${c.title}</h2></div>
-      <div class="row"><span class="tag">🔍 ${st.seen.size}/${totalEv}</span><span class="tag">⚡ ${st.found.length}/${c.contra.length ? new Set(c.contra.map((x) => x.flag)).size : 0}</span><span class="tag">👣 ${st.actions}</span><button class="btn ghost sm" id="dback">← Ishlar</button></div>
+      <div class="row"><span id="dcount" class="row">${countsHTML()}</span><button class="btn ghost sm" id="dback">← Ishlar</button></div>
     </div>
     <div class="det-layout">
       <section class="card det-main"><div class="det-tabs">${tabs.map(([k, t]) => `<button class="${st.tab === k ? "on" : ""}" data-tab="${k}">${t}${k === "board" && st.statements.length ? ` <small>${st.statements.length}</small>` : ""}</button>`).join("")}</div><div class="det-body">${body}</div></section>
-      <aside class="card notebook"><h3 style="font-size:16px">📒 Detektiv bloknoti</h3>
+      <aside class="card notebook" id="nbk">${notebookHTML()}</aside>
+    </div></div>`;
+  bind(app);
+  if (st.tab === "loc" && st.mode3d) mount3D(app);
+}
+function countsHTML() {
+  const c = st.c;
+  return `<span class="tag">🔍 ${st.seen.size}/${allEv().length}</span><span class="tag">⚡ ${new Set(st.found.map((f) => f.flag)).size}/${new Set(c.contra.map((x) => x.flag)).size}</span><span class="tag">👣 ${st.actions}</span>`;
+}
+function notebookHTML() {
+  const c = st.c;
+  return `<h3 style="font-size:16px">📒 Detektiv bloknoti</h3>
         ${st.found.length ? `<div class="insights">${st.found.map((f) => `<div class="insight">⚡ ${esc(f.insight)}</div>`).join("")}</div>` : ""}
         ${st.clues.length ? `<ul>${st.clues.map((x) => `<li>${x.time ? `<b>${esc(x.time)}</b> ` : ""}${esc(x.t)}</li>`).join("")}</ul>` : `<p class="muted small">Izlar shu yerda to'planadi.</p>`}
         ${st.done ? "" : `<button class="btn ghost sm mt" id="hint" ${st.hints >= c.hints.length ? "disabled" : ""}>💡 Maslahat (${c.hints.length - st.hints} qoldi · −15% mukofot)</button>`}
-        ${st.hints ? `<div class="hints">${c.hints.slice(0, st.hints).map((h) => `<p class="small">💡 ${esc(h)}</p>`).join("")}</div>` : ""}
-      </aside>
-    </div></div>`;
-  bind(app);
+        ${st.hints ? `<div class="hints">${c.hints.slice(0, st.hints).map((h) => `<p class="small">💡 ${esc(h)}</p>`).join("")}</div>` : ""}`;
+}
+function refreshSide(app) {
+  const a = app.querySelector("#dcount"); if (a) a.innerHTML = countsHTML();
+  const n = app.querySelector("#nbk"); if (n) { n.innerHTML = notebookHTML(); const h = n.querySelector("#hint"); if (h) h.onclick = () => { if (st.hints < st.c.hints.length) { st.hints++; save(); refreshSide(app); } }; }
+}
+function evState(e) { return !has(e.need) ? "locked" : st.seen.has(e.id) ? "seen" : "new"; }
+async function mount3D(app) {
+  const holder = app.querySelector("#scene3d"); if (!holder) return;
+  const loc = st.c.locations.find((l) => l.id === st.curLoc) || st.c.locations[0];
+  const s = await mountScene(holder, loc, {
+    state: evState,
+    onPick: (e) => {
+      const box = app.querySelector("#reveal");
+      if (!has(e.need)) { showReveal(box, "🔒", "Yopiq dalil", e.lock || "Nimadir yetishmayapti…", "locked"); return; }
+      const fresh = !st.seen.has(e.id);
+      if (fresh) { st.seen.add(e.id); st.actions++; addClue(e.clue, e.time); save(); refreshSide(app); scn?.refresh(); updateChips(app); }
+      showReveal(box, e.ico, e.name, e.clue, fresh ? "new" : "seen");
+    },
+  });
+  if (!holder.isConnected) { s?.dispose(); return; }
+  holder.querySelector(".scene-loading")?.remove();
+  if (!s) { st.mode3d = false; draw(app); toast("3D qurilmangizda ishlamadi — ro'yxat ko'rinishi"); return; }
+  scn = s;
+}
+function showReveal(box, ico, name, text, kind) {
+  if (!box) return;
+  box.className = "scene-reveal show " + kind;
+  box.innerHTML = `<span class="rv-ico">${ico}</span><div><b>${esc(name)}</b><p>${esc(text)}</p></div><button class="rv-x" aria-label="Yopish">✕</button>`;
+  box.querySelector(".rv-x").onclick = () => box.classList.remove("show");
+}
+function updateChips(app) {
+  app.querySelectorAll("[data-l3]").forEach((b) => { const l = st.c.locations.find((x) => x.id === b.dataset.l3); b.querySelector("small").textContent = `${l.ev.filter((e) => st.seen.has(e.id)).length}/${l.ev.length}`; });
 }
 
 function brief() {
@@ -103,7 +195,16 @@ function brief() {
 }
 
 function locations() {
-  return `<div class="grid">${st.c.locations.map((l) => {
+  if (st.mode3d === undefined) st.mode3d = use3D();
+  const toggle = webglOK() ? `<button class="btn ghost sm" id="mode3d">${st.mode3d ? "📋 Ro'yxat ko'rinishi" : "🧊 3D ko'rinish"}</button>` : "";
+  if (st.mode3d) {
+    const cur = st.c.locations.find((l) => l.id === st.curLoc);
+    return `<div class="loc-chips">${st.c.locations.map((l) => `<button class="${l.id === st.curLoc ? "on" : ""}" data-l3="${l.id}">${l.ico} ${l.name} <small>${l.ev.filter((e) => st.seen.has(e.id)).length}/${l.ev.length}</small></button>`).join("")}</div>
+      <div id="scene3d" class="scene-wrap"><div class="scene-loading"><div class="spinner"></div><p class="muted small">3D sahna yuklanmoqda…</p></div>
+        <div class="scene-hint">🖐 Aylantirish uchun suring · 🔍 dalilni bosing</div><div id="reveal" class="scene-reveal"></div></div>
+      <div class="row mt" style="justify-content:space-between"><p class="muted small" style="margin:0">${esc(cur.desc)}</p>${toggle}</div>`;
+  }
+  return `<div class="row" style="justify-content:flex-end;margin-bottom:10px">${toggle}</div><div class="grid">${st.c.locations.map((l) => {
     const open = st.openLoc === l.id;
     const seenN = l.ev.filter((e) => st.seen.has(e.id)).length;
     return `<div class="loc ${open ? "open" : ""}"><button class="loc-head" data-loc="${l.id}"><span class="loc-ico">${l.ico}</span><span><b>${l.name}</b><small class="muted">${esc(l.desc)}</small></span><span class="tag">${seenN}/${l.ev.length}</span></button>
@@ -170,7 +271,10 @@ function accuse() {
 function bind(app) {
   const { c } = st;
   app.querySelector("#dback").onclick = () => openCase(app);
+  if (!window._detHash) { window._detHash = true; window.addEventListener("hashchange", disposeScene); }
   app.querySelectorAll("[data-tab]").forEach((b) => (b.onclick = () => { st.tab = b.dataset.tab; st.sel = []; draw(app); }));
+  app.querySelectorAll("[data-l3]").forEach((b) => (b.onclick = () => { st.curLoc = b.dataset.l3; draw(app); }));
+  const m3 = app.querySelector("#mode3d"); if (m3) m3.onclick = () => { st.mode3d = !st.mode3d; try { localStorage.setItem("det3d", st.mode3d ? "1" : "0"); } catch {} draw(app); };
   app.querySelectorAll("[data-loc]").forEach((b) => (b.onclick = () => { st.openLoc = st.openLoc === b.dataset.loc ? null : b.dataset.loc; draw(app); }));
   app.querySelectorAll("[data-ev]").forEach((b) => (b.onclick = () => {
     const e = evById(b.dataset.ev);
@@ -236,6 +340,7 @@ async function submit(app, d) {
   if (first) {
     earned = tokens; await db.addTokens(tokens); await db.saveCase(c.id, score);
     db.vipSet("dstate_" + c.id, null);
+    if (okC && st.hints === 0) db.vipSet("ach_nohint", true);
   }
   st.done = true;
   const culprit = c.suspects.find((s) => s.id === sol.culprit);

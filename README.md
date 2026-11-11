@@ -20,7 +20,8 @@ Moslashuvchan (adaptiv) IQ test sayti: har bir foydalanuvchiga **noyob savollar*
 | **Bepul tahlil** | 5 band: umumiy natija, kuchli/zaif yo'nalish, ishlash uslubi, murakkab savollar. |
 | **Premium** | Cheksiz test, chuqur tahlil (4 kognitiv indeks, reja, kasblar), 7 trenajyor, 6 detektiv ishi. |
 | **Trenajyorlar** | Dual N-Back (adaptiv daraja), IQ trener (cheksiz, adaptiv), Aylantirish, Schulte, Xotira panjarasi, Stroop, Tezkor hisob. Rekordlar va kunlik seriya. |
-| **Detektiv** | 6 ta ish (★1–★5): joylarni tintish, so'roq, **Dalillar taxtasi**da ko'rsatma va dalillarni taqqoslab yolg'onni fosh qilish (yangi savol va joylarni ochadi), avtomatik xronologiya, maslahatlar, ayblov (aybdor + motiv + usul + hal qiluvchi yolg'on), tokenlar va unvonlar. Progress avtomatik saqlanadi. |
+| **Bilimdon bola** | 4–10 yoshli bolalar uchun bepul: sanash, hisob, harflar, ortiqchasi, naqsh, rang va shakl, juftini top. Yulduzlar, 5 bosqich, ovozli effektlar. |
+| **Detektiv** | **3D jinoyat joylari** (Three.js, yengil, qotmaydi), kunlik mukofot seriyasi, 8 ta yutuq. 6 ta ish (★1–★5): joylarni tintish, so'roq, **Dalillar taxtasi**da ko'rsatma va dalillarni taqqoslab yolg'onni fosh qilish (yangi savol va joylarni ochadi), avtomatik xronologiya, maslahatlar, ayblov (aybdor + motiv + usul + hal qiluvchi yolg'on), tokenlar va unvonlar. Progress avtomatik saqlanadi. |
 
 > Bu onlayn baholash; klinik IQ testi (WAIS, Raven SPM) o'rnini bosmaydi. Savol qiyinlik parametrlari ekspert baholashi asosida — haqiqiy ma'lumotlar to'plangach kalibrlash tavsiya etiladi (`js/scoring.js`).
 
@@ -73,6 +74,8 @@ js/admin.js             admin paneli
 js/games.js             trenajyorlar
 js/detective.js         detektiv o'yin dvigateli
 js/cases.js             6 ta detektiv ishi
+js/scene3d.js           3D sahna (Three.js)
+js/kids.js              bolalar o'yinlari
 data/premium-users.json Premium a'zolar (xeshlar)
 scripts/premium.mjs     admin CLI
 supabase/schema.sql     DB sxemasi

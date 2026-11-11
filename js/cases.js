@@ -72,7 +72,7 @@ export const CASES = [
     ],
     locations: [
       { id: "stol", name: "Davronning stoli", ico: "🍽", desc: "To'kilgan choy, ag'darilgan piyola.", ev: [
-        { id: "choynak", ico: "🫗", name: "Choynak", clue: "Choynakda zahar yo'q — zahar faqat piyolaga solingan." },
+        { id: "choynak", ico: "🍵", name: "Choynak", clue: "Choynakda zahar yo'q — zahar faqat piyolaga solingan." },
         { id: "guvoh", ico: "🧓", name: "Qo'shni stoldagi guvoh", clue: "Guvoh: \"Ofitsiant piyolani olib keldi, Davron darhol ichdi. Sherzod piyolaga tegmadi.\"" },
       ] },
       { id: "peshtaxta", name: "Peshtaxta", ico: "🧾", desc: "Patnislar, kassa, burchakda kamera.", ev: [
