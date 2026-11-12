@@ -2,7 +2,7 @@
 
 Moslashuvchan (adaptiv) IQ test sayti: har bir foydalanuvchiga **noyob savollar**, natija **IRT psixometrik modeli** asosida yosh normasi va ishonch oralig'i bilan. Reyting, Premium a'zolar bo'limi, miya trenajyorlari va to'liq Detektiv o'yini.
 
-**Demo:** https://jasurbek602.github.io/company/ · **Ishlash tartibi:** [QOLLANMA.md](QOLLANMA.md)
+**Sayt:** https://mindgamesdc.vercel.app · **Ishlash tartibi:** [QOLLANMA.md](QOLLANMA.md)
 
 - **Frontend:** toza HTML/CSS/JS (ES modullar), build kerak emas — GitHub Pages / Vercel / istalgan statik hosting
 - **Ma'lumotlar:** Supabase ulansa — umumiy reyting bazada; ulanmasa — hammasi qurilmada (localStorage), sayt baribir to'liq ishlaydi

@@ -1,6 +1,6 @@
 # Company IQ — ishlash tartibi
 
-Sayt: **https://jasurbek602.github.io/company/**
+Sayt: **https://mindgamesdc.vercel.app** (admin: https://mindgamesdc.vercel.app/admin)
 Repo: **https://github.com/jasurbek602/company**
 
 ---
