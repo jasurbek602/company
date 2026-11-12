@@ -68,6 +68,7 @@ export default async function handler(req, res) {
 
     return json(res, 404, { error: "Topilmadi" });
   } catch (e) {
-    return json(res, e.code === 503 ? 503 : e.code === 413 || e.code === 400 ? e.code : 500, { error: e.code ? e.message : "Server xatosi" });
+    if (e.code !== 413 && e.code !== 400) console.error("public", e?.message);
+    return json(res, e.code === 413 || e.code === 400 ? e.code : 503, { error: e.code === 413 || e.code === 400 ? e.message : "Server vaqtincha ishlamayapti" });
   }
 }

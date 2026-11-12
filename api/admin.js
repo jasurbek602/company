@@ -11,7 +11,12 @@ export default async function handler(req, res) {
   // admin API boshqa domendan chaqirilmaydi (CORS sarlavhalari qo'yilmaydi)
   let db, b;
   try { db = await getStore(); b = await readBody(req, 4 * 1024 * 1024); }
-  catch (e) { return json(res, e.code === 503 ? 503 : 400, { error: e.message }); }
+  catch (e) {
+    // ichki xato matni (baza, TLS va h.k.) tashqariga chiqarilmaydi
+    if (e.code === 413 || e.code === 400) return json(res, e.code, { error: e.message });
+    console.error("admin init", e?.message);
+    return json(res, 503, { error: "Ma'lumotlar bazasiga ulanib bo'lmadi" });
+  }
   const ip = ipHash(req);
   const action = String(b.action || "");
 
