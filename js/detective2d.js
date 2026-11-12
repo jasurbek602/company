@@ -44,10 +44,10 @@ export async function renderDetective(app, caseId) {
         <div class="tokens big-tokens">🪙 ${p.tokens}</div>
       </section>
       ${dailyBox()}
-      <p class="muted mt">Joylarni tinting, gumonlanuvchilarni so'roq qiling, <b>Dalillar taxtasi</b>da yolg'onni fosh qiling — har bir fosh qilingan qarama-qarshilik yangi eshiklarni ochadi. Keyingi ish oldingisi yechilgach ochiladi.</p>
+      <p class="muted mt">Joylarni tinting, gumonlanuvchilarni so'roq qiling, <b>Dalillar taxtasi</b>da yolg'onni fosh qiling — har bir fosh qilingan qarama-qarshilik yangi eshiklarni ochadi. Premium a'zolar uchun barcha ishlar ochiq.</p>
       <div class="grid g3 mt">${CASES.map((x, i) => {
         const s = solved.find((y) => y.case_id === x.id);
-        const locked = (i >= FREE_CASES && !db.isPremium()) || (i > 0 && !solved.some((y) => y.case_id === CASES[i - 1].id));
+        const locked = i >= FREE_CASES && !db.isPremium();
         const inProg = !s && db.vipGet("dstate_" + x.id, null);
         return `<button class="card case-card ${locked ? "locked" : ""} reveal" data-case="${x.id}" ${locked ? "disabled" : ""} style="text-align:left;transition-delay:${i * 70}ms">
           <div class="case-num">ISH №${String(i + 1).padStart(3, "0")}</div>

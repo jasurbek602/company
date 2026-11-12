@@ -54,7 +54,6 @@ async function go() {
   const solved = await db.solvedCases();
   const idx = CASES.indexOf(c);
   if (idx >= FREE_CASES && !db.isPremium()) { location.hash = "#/detective"; setTimeout(premiumModal, 400); return; }
-  if (idx > 0 && !solved.some((s) => s.case_id === CASES[idx - 1].id)) { toast("Bu ish hali yopiq — oldingisini yeching"); location.hash = "#/detective"; return; }
   if (!st || st.c.id !== c.id) loadState(c, solved);
   if (scene === "loc") { const loc = c.locations.find((l) => l.id === locId) || c.locations[0]; return show("loc:" + loc.id, () => sceneLoc(loc)); }
   if (scene === "sorov") return show("sorov", () => sceneSorov());
@@ -140,14 +139,14 @@ async function sceneHQ() {
   st = null;
   const p = await db.getProfile(), solved = await db.solvedCases();
   const prem = db.isPremium();
-  const info = CASES.map((x, i) => { const s = solved.find((y) => y.case_id === x.id); const pLock = !prem && i >= FREE_CASES; return { solved: !!s, score: s?.score, premium: pLock, locked: pLock || (i > 0 && !solved.some((y) => y.case_id === CASES[i - 1].id)), inProg: !s && !!db.vipGet("dstate_" + x.id, null) }; });
+  const info = CASES.map((x, i) => { const s = solved.find((y) => y.case_id === x.id); const pLock = !prem && i >= FREE_CASES; return { solved: !!s, score: s?.score, premium: pLock, locked: pLock, inProg: !s && !!db.vipGet("dstate_" + x.id, null) }; });
   built = buildHQ(CASES, info, (d) => { if (d.premium) return premiumModal(); if (d.locked) return toast("🔒 Avval oldingi ishni yeching"); eng.flyTo([0, 2.6, 2.6], [0, 1, 0], 450).then(() => nav("#/detective/" + d.id)); });
   eng.set(built);
   const rank = rankOf(p.tokens);
   const daily = dailyState(); const canClaim = daily.last !== today();
   topbar({ back: null, title: `${rank.ico} ${rank.name}`, sub: rank.next ? `Keyingi: ${rank.next.name} — ${rank.next.min} 🪙` : "Eng yuqori unvon!",
     extra: `<span class="hud-chip gold">🪙 ${p.tokens}</span><button class="hud-btn ${canClaim ? "glow" : ""}" id="hDaily">🎁</button><button class="hud-btn" id="hAch">🏆</button>` });
-  panel(`<span>📁 Stoldagi <b>ish papkasini</b> bosing. Har bir yechilgan ish keyingisini ochadi.</span>`, "p-hint");
+  panel(`<span>📁 Stoldagi <b>ish papkasini</b> bosing. Premium a'zolar uchun barcha ishlar ochiq — istaganingizdan boshlang.</span>`, "p-hint");
   $("#hDaily").onclick = () => dailyModal();
   $("#hAch").onclick = () => achModal(p, solved);
   if (canClaim) setTimeout(() => cur === "hq" && dailyModal(), 700);

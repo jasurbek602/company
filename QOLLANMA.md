@@ -35,7 +35,7 @@ Repo: **https://github.com/jasurbek602/company**
 4. **🧷 Taxta** — bir-biriga **zid** ikki kartani tanlang (masalan: "21:00 da uyda edim" + "metro kartasi 22:05") → **Taqqoslash**. To'g'ri bo'lsa — yolg'on fosh qilinadi va yangi imkoniyatlar ochiladi. Noto'g'ri taqqoslash ballni kamaytiradi.
 5. **🕒 Xronologiya** — vaqtli dalillar avtomatik tartiblanadi.
 6. **⚖️ Sud zali** — aybdorni safdan tanlang (⚡ belgisi — fosh qilingan yolg'onlar soni), motiv va usulni tanlang (📎 — dalil bilan tasdiqlangan variant). Xato qilsangiz, **yana 1 imkoniyat** bor (mukofot −30%).
-7. Mukofot: 🪙 tokenlar va unvonlar (Stajyor → Afsonaviy tergovchi). 💡 Maslahat har biri mukofotni 15% kamaytiradi. Keyingi ish oldingisi yechilgach ochiladi.
+7. Mukofot: 🪙 tokenlar va unvonlar (Stajyor → Afsonaviy tergovchi). 💡 Maslahat har biri mukofotni 15% kamaytiradi. Premium a'zolar uchun barcha ishlar birdaniga ochiq — istalgan tartibda yechish mumkin.
 8. **12 ta ish**: 1-ish ("Muzeydagi olmos") — **bepul**, qolgan 11 tasi — **Premium**. Bepul o'ynagan progress Premium'ga kirganda saqlanib qoladi.
 
 ## 3. Server, ma'lumotlar bazasi va admin panel (MongoDB + Vercel)
