@@ -29,3 +29,8 @@
   .lgrid { grid-template-columns: 1fr; }
   .brd-actions { width: 100%; justify-content: space-between; }
 }
+
+/* bepul test ishlatilgan ekrani */
+.used-ico { font-size: 56px; margin-bottom: 8px; }
+.used-res { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 18px auto; padding: 16px 28px; border-radius: 18px; background: var(--card-strong); border: 1px solid var(--line); width: fit-content; }
+.used-res b { font-family: var(--head); font-size: 48px; line-height: 1.1; }

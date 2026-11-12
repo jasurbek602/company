@@ -165,23 +165,39 @@ async function ratingPage() {
 }
 
 /* ---------------- TEST ---------------- */
-const TOTAL_SEC = 30 * 60;
-const N_ITEMS = 36;
+// Ikki xil test: bepul (1 marta) va Premium (kuchliroq, aniqroq, cheksiz)
+const MODES = {
+  free: { n: 36, sec: 30 * 60, start: -0.3, bias: 0, label: "Bepul test" },
+  // Premium: ko'proq savol = kichikroq xatolik; qiyinlik qobiliyatdan biroz yuqori tanlanadi
+  // (3PL modelda taxmin ehtimoli tufayli eng ko'p ma'lumot shu nuqtada olinadi)
+  premium: { n: 60, sec: 45 * 60, start: 0, bias: 0.3, label: "👑 Premium test" },
+};
+let MODE = MODES.free, TOTAL_SEC = MODE.sec, N_ITEMS = MODE.n;
+const setMode = () => { MODE = db.isPremium() ? MODES.premium : MODES.free; TOTAL_SEC = MODE.sec; N_ITEMS = MODE.n; };
+// Bepul imkoniyat qurilmada saqlanadi: {at, iq, name}
+const freeUsed = () => { try { const v = localStorage.getItem("free_used"); return v ? (v === "1" ? { at: null } : JSON.parse(v)) : null; } catch { return null; } };
 async function testIntro() {
-  const done = localStorage.getItem("free_used");
-  if (done && !db.isPremium()) {
-    app.innerHTML = `<section class="card center" style="max-width:640px;margin:40px auto">
-      <div class="tag gold">Bepul test ishlatilgan</div>
-      <h1 class="mt">Qayta topshirish — Premiumda</h1>
-      <p class="muted">Birinchi test bepul edi. Cheksiz qayta topshirish, chuqur tahlil, trenajyorlar va Detektiv bo'limi uchun Premium akkauntga kiring.</p>
-      <div class="row" style="justify-content:center">${vipBtn("👑 Premium kirish", "gold lg")}<a href="#/me" class="btn ghost lg">Natijalarim</a></div>
+  setMode();
+  const used = freeUsed();
+  if (used && !db.isPremium()) {
+    const last = db.myResults()[0];
+    app.innerHTML = `<section class="card center used-box" style="max-width:640px;margin:40px auto">
+      <div class="used-ico">🔒</div>
+      <div class="tag gold">Bepul imkoniyat ishlatilgan</div>
+      <h1 class="mt">Siz bepul testdan foydalangansiz</h1>
+      ${last ? `<div class="used-res"><span class="muted small">Sizning natijangiz${last.created_at ? " · " + new Date(last.created_at).toLocaleDateString("uz-UZ") : ""}</span><b class="grad-text">IQ ${last.iq}</b><span class="muted small">± ${last.ci ?? "?"} · ${esc(band(last.iq))}</span></div>` : ""}
+      <p class="muted">Har bir qurilmada IQ testni <b>1 marta bepul</b> topshirish mumkin. Qayta va <b>kuchliroq test</b> (60 savol, yuqori aniqlik) — Premium a'zolar uchun.</p>
+      <div class="row" style="justify-content:center">${last ? `<button class="btn ghost lg" id="seeRes">📊 Natijamni ko'rish</button>` : ""}${vipBtn("👑 Premium olish", "gold lg")}</div>
     </section>`;
+    const b = $("#seeRes"); if (b) b.onclick = () => { sessionStorage.setItem("last_result", JSON.stringify(last.details)); location.hash = "#/result"; };
     return;
   }
   const p = db.getPerson() || {};
+  const prem = db.isPremium();
   app.innerHTML = `<section class="card" style="max-width:760px;margin:0 auto">
-    <span class="tag">⏱ 30 daqiqa · ${N_ITEMS} savol · moslashuvchan</span>
-    <h1 class="mt">Testga tayyorlanish</h1>
+    <span class="tag ${prem ? "gold" : ""}">${prem ? "👑 Premium test" : "🎁 Bepul test (1 marta)"} · ⏱ ${MODE.sec / 60} daqiqa · ${N_ITEMS} savol</span>
+    <h1 class="mt">${prem ? "Kuchli IQ test" : "Testga tayyorlanish"}</h1>
+    ${prem ? `<p class="muted" style="margin:0">Premium test: <b>60 ta savol</b>, qiyinroq savollar va <b>yuqori aniqlik</b> (xatolik ≈ ±3,5 — bepul testda ±4,5). Har safar yangi savollar — istalgancha topshirishingiz mumkin.</p>` : `<p class="muted" style="margin:0">⚠️ Bepul test har bir qurilmada <b>faqat 1 marta</b>. Tinch joyda, shoshilmasdan topshiring.</p>`}
     <form id="pf" class="grid g2 mt">
       <label class="field"><span>Ismingiz</span><input name="name" required maxlength="40" placeholder="Masalan: Jasur" value="${esc(p.name || "")}" autocomplete="given-name"></label>
       <label class="field"><span>Yoshingiz</span><input name="age" required type="number" min="7" max="99" inputmode="numeric" placeholder="Masalan: 21" value="${esc(p.age || "")}"></label>
@@ -221,14 +237,16 @@ function runTest() {
   const cats = Object.keys(CATEGORIES);
   let order = shuffle(cats);
   const items = []; // {q, answer, time, correct}
-  let theta = -0.3, left = TOTAL_SEC, qStart = Date.now(), finished = false;
+  setMode();
+  const mode = MODE;
+  let theta = mode.start, left = TOTAL_SEC, qStart = Date.now(), finished = false;
   const C = 2 * Math.PI * 16;
 
   const nextItem = () => {
     if (items.length % 4 === 0) order = shuffle(cats);
     const cat = order[items.length % 4];
     // kichik tasodifiy tebranish — savol ketma-ketligi oldindan bashorat qilinmasin
-    const lvl = levelFor(theta + (Math.random() - 0.5) * 0.5);
+    const lvl = levelFor(theta + mode.bias + (Math.random() - 0.5) * 0.5);
     let q = genItem(cat, lvl, used);
     items.push({ q, answer: null, time: 0 });
   };
@@ -310,9 +328,9 @@ function runTest() {
     const resp = done.map((x) => ({ cat: x.q.cat, diff: x.q.diff, nOpt: x.q.options.length, correct: x.correct, time: x.time, answered: x.answer != null }));
     if (!resp.length) { location.hash = "#/"; return; }
     const r = score(resp, person?.age, used);
-    r.name = person?.name; r.date = new Date().toISOString();
+    r.name = person?.name; r.date = new Date().toISOString(); r.mode = mode === MODES.premium ? "premium" : "free";
     sessionStorage.setItem("last_result", JSON.stringify(r));
-    if (!db.isPremium()) localStorage.setItem("free_used", "1");
+    if (r.mode === "free") localStorage.setItem("free_used", JSON.stringify({ at: r.date, iq: r.iq, name: r.name || "" }));
     try { await db.saveResult(r); } catch (e) { toast("Natijani saqlashda xato: " + e.message); }
     app.innerHTML = `<div class="center" style="padding:80px 0"><div class="spinner"></div><h2>Natija hisoblanmoqda…</h2><p class="muted">Javoblaringiz psixometrik model bo'yicha tahlil qilinmoqda</p></div>`;
     setTimeout(() => (location.hash = "#/result"), 1400);
