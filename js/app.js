@@ -1,4 +1,4 @@
-import { genItem, CATEGORIES, shuffle } from "./questions.js";
+import { genItem, genType, buildSchedule, CATEGORIES, shuffle } from "./questions.js";
 import { score, fivePoints, deepAnalysis, band, estimate, levelToB } from "./scoring.js";
 import * as db from "./db.js";
 import { renderGames } from "./games.js";
@@ -239,15 +239,17 @@ function runTest() {
   const items = []; // {q, answer, time, correct}
   setMode();
   const mode = MODE;
+  const schedule = buildSchedule(mode === MODES.premium);
+  N_ITEMS = schedule.length;
   let theta = mode.start, left = TOTAL_SEC, qStart = Date.now(), finished = false;
   const C = 2 * Math.PI * 16;
 
   const nextItem = () => {
-    if (items.length % 4 === 0) order = shuffle(cats);
-    const cat = order[items.length % 4];
+    // har bir turdan 2–3 tadan, bir xil tur ketma-ket kelmaydi
+    const typeId = schedule[items.length];
     // kichik tasodifiy tebranish — savol ketma-ketligi oldindan bashorat qilinmasin
     const lvl = levelFor(theta + mode.bias + (Math.random() - 0.5) * 0.5);
-    let q = genItem(cat, lvl, used);
+    let q = genType(typeId, lvl, used);
     items.push({ q, answer: null, time: 0 });
   };
   nextItem();

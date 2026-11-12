@@ -495,12 +495,278 @@ function genVerbal(level, used) {
 }
 
 /* =========================================================
+   YANGI SAVOL TURLARI
+   ========================================================= */
+const B = (s) => `<b>${s}</b>`;
+
+// 3) Ortiqcha shakl: 4 tasi bitta qoidaga bo'ysunadi, bittasi boshqacha
+function genOddShape(level) {
+  const color = pick(COLORS);
+  const attrs = ["shape", "fill", "count", "rot"];
+  const odd = pick(attrs);
+  const fills = ["none", "half", "solid"];
+  const base = { shape: pick(["triangle", "star", "square", "hex"]), fill: pick(fills), count: rnd(1, 3), rot: 0, color };
+  if (odd === "rot") base.shape = pick(["triangle", "star"]);
+  const items = Array.from({ length: 5 }, () => ({ ...base }));
+  // yuqori darajada boshqa bir atribut ham o'zgaradi (3+2 taqsimotda — yolg'iz qiymat paydo bo'lmasin)
+  if (level >= 3) {
+    const vary = pick(attrs.filter((a) => a !== odd && a !== "rot"));
+    const vals = vary === "shape" ? shuffle(["triangle", "star"]).slice(0, 2) : vary === "fill" ? shuffle(fills).slice(0, 2) : shuffle([1, 2, 3]).slice(0, 2);
+    shuffle([0, 0, 0, 1, 1]).forEach((v, i) => (items[i][vary] = vals[v]));
+    if (vary === "shape" && odd === "rot") items.forEach((it) => (it.shape = it.shape === "hex" ? "triangle" : it.shape));
+  }
+  const oi = rnd(0, 4);
+  const o = items[oi];
+  if (odd === "shape") o.shape = pick(SHAPES.filter((s) => !items.some((it, i) => i !== oi && it.shape === s)));
+  if (odd === "fill") o.fill = pick(fills.filter((f) => f !== base.fill && !items.some((it, i) => i !== oi && it.fill === f)));
+  if (odd === "count") o.count = pick([1, 2, 3, 4].filter((c) => !items.some((it, i) => i !== oi && it.count === c)));
+  if (odd === "rot") { items.forEach((it, i) => (it.rot = i === oi ? 180 : 0)); }
+  if (!o.shape || !o.fill || !o.count) return genOddShape(level);
+  return { cat: "matrix", diff: Math.min(6, level + (level >= 3 ? 1 : 0)), text: "Qaysi shakl boshqalarga o'xshamaydi (ortiqcha)?", options: items.map((_, i) => "o" + i), optionSVG: items.map((it) => svgWrap(shapeCell(it))), answer: "o" + oi, visual: true };
+}
+
+// 4) Shakllar qatori: nuqtalar aylana bo'ylab harakatlanadi — keyingi holat qaysi?
+function orbitSVG(dots) {
+  const c = 45, R = 30;
+  let g = `<circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2"/>`;
+  for (let k = 0; k < 8; k++) { const a = (k * 45 - 90) * Math.PI / 180; g += `<circle cx="${(c + R * Math.cos(a)).toFixed(1)}" cy="${(c + R * Math.sin(a)).toFixed(1)}" r="3" fill="rgba(255,255,255,.18)"/>`; }
+  for (const d of dots) { const a = (d.p * 45 - 90) * Math.PI / 180; g += `<circle cx="${(c + R * Math.cos(a)).toFixed(1)}" cy="${(c + R * Math.sin(a)).toFixed(1)}" r="${d.big ? 9 : 7}" fill="${d.col}"/>`; }
+  return svgWrap(g);
+}
+function genFigureSeries(level) {
+  const n = level <= 2 ? 1 : level <= 5 ? 2 : 3;
+  const cols = ["#ff4fd8", "#00d4ff", "#ffc94d"];
+  const dots = Array.from({ length: n }, (_, i) => ({ s: rnd(0, 7), step: pick(level <= 2 ? [1, 2] : [1, 2, 3, -1, -2]) * (i === 2 ? 1 : 1), col: cols[i], big: i === 0 }));
+  if (n >= 2 && dots[0].step === dots[1].step) dots[1].step = -dots[0].step || 1;
+  const at = (k) => dots.map((d) => ({ ...d, p: (((d.s + d.step * k) % 8) + 8) % 8 }));
+  const shown = [0, 1, 2, 3].map(at);
+  const ans = at(4);
+  const key = (ds) => ds.map((d) => d.p).join("-");
+  const cands = [ans];
+  const seen = new Set([key(ans)]);
+  for (let t = 0; t < 40 && cands.length < 5; t++) {
+    const v = ans.map((d) => ({ ...d }));
+    const j = rnd(0, n - 1); v[j].p = (v[j].p + pick([1, -1, 2, 4]) + 8) % 8;
+    if (!seen.has(key(v))) { seen.add(key(v)); cands.push(v); }
+  }
+  const sh = shuffle(cands);
+  const row = shown.map((ds) => `<div style="width:84px">${orbitSVG(ds)}</div>`).join("") + `<div class="qmark">?</div>`;
+  return { cat: "matrix", diff: Math.min(7, 2 + n * 1.5 | 0), text: n === 1 ? "Nuqta har qadamda ma'lum qoida bilan siljiydi. Keyingi holat qaysi?" : `${n} ta nuqta har biri o'z qoidasi bilan siljiydi. Keyingi holat qaysi?`, svg: `<div class="steps">${row}</div>`, options: sh.map(key), optionSVG: sh.map(orbitSVG), answer: key(ans), visual: true };
+}
+
+// 9) Yetishmayotgan son (tenglama)
+function genMissingNum(level) {
+  let text, ans;
+  if (level <= 2) { const a = rnd(5, 40), x = rnd(3, 30); text = `${a} + ? = ${a + x}`; ans = x; }
+  else if (level <= 4) { const a = rnd(3, 9), x = rnd(3, 12), b = rnd(2, 20); text = `${a} × ? + ${b} = ${a * x + b}`; ans = x; }
+  else if (level <= 6) { const a = rnd(2, 8), b = rnd(3, 7), x = rnd(2, 12), c = rnd(1, 15); text = `(? + ${a}) × ${b} − ${c} = ${(x + a) * b - c}`; ans = x; }
+  else { const x = rnd(4, 15), a = rnd(2, 30), b = rnd(2, 5); text = `?² − ${a} = ${x * x - a} ${B("va")} ? > 0, keyin ? × ${b} = ?`; ans = x * b; return { cat: "numeric", diff: 7, text: `Avval ? ni toping: ?² − ${a} = ${x * x - a} (? > 0). Javob: ? × ${b} nechaga teng?`, options: numOpts(ans, [x, ans + b, ans - b]), answer: String(ans) }; }
+  return { cat: "numeric", diff: Math.min(7, level), text: `Tenglamadagi ? o'rniga qaysi son keladi?  ${text}`, options: numOpts(ans, [ans + 1, ans - 1, ans * 2]), answer: String(ans) };
+}
+
+// 10) Kasr, o'nli kasr va foizlarni solishtirish
+function genFractions(level) {
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
+  const mk = () => { const d = pick(level <= 2 ? [8] : [3, 4, 5, 6, 7, 8, 9, 10, 12]); const n = rnd(1, d - 1); return { n, d }; };
+  const show = (f, i) => { if (level >= 5 && i % 3 === 1) return `${Math.round((f.n / f.d) * 1000) / 10}%`; if (level >= 5 && i % 3 === 2) return String(Math.round((f.n / f.d) * 1000) / 1000).replace(".", ","); return `${f.n}/${f.d}`; };
+  for (let t = 0; t < 50; t++) {
+    const fs = Array.from({ length: 4 }, mk);
+    const vals = fs.map((f) => f.n / f.d);
+    const max = Math.max(...vals);
+    if (vals.filter((v) => Math.abs(v - max) < 1e-9).length !== 1) continue;
+    if (level >= 5 && vals.some((v, i) => i !== vals.indexOf(max) && max - v < 0.02)) continue;
+    if (level >= 5 && vals.some((v) => Math.abs(v * 1000 - Math.round(v * 1000)) > 1e-6 && false)) continue;
+    const labels = fs.map(show);
+    if (new Set(labels).size !== 4) continue;
+    return { cat: "numeric", diff: level <= 2 ? 2 : level <= 4 ? 4 : 5, text: "Qaysi biri eng katta?", options: shuffle(labels), answer: labels[vals.indexOf(max)] };
+  }
+  return genMissingNum(level);
+}
+
+// 16) Rostgo'y va yolg'onchilar (yagona yechim avtomatik tekshiriladi)
+function genKnights(level) {
+  const n = level <= 4 ? 2 : 3;
+  const P = shuffle(["Ali", "Vali", "Sobir", "Lola", "Dilya", "Karim"]).slice(0, n);
+  const tmpl = [
+    (a, b) => ({ t: `"${P[b]} yolg'onchi."`, f: (w) => !w[b] }),
+    (a, b) => ({ t: `"${P[b]} rostgo'y."`, f: (w) => w[b] }),
+    (a, b) => ({ t: `"Men va ${P[b]} — bir xil turdagi odamlarmiz."`, f: (w) => w[a] === w[b] }),
+    (a, b) => ({ t: `"Men va ${P[b]} — har xil turdagi odamlarmiz."`, f: (w) => w[a] !== w[b] }),
+    () => ({ t: `"Bizdan kamida bittasi yolg'onchi."`, f: (w) => w.some((x) => !x) }),
+    () => ({ t: `"Bizning hammamiz yolg'onchimiz."`, f: (w) => w.every((x) => !x) }),
+  ];
+  const worlds = Array.from({ length: 2 ** n }, (_, m) => Array.from({ length: n }, (_, i) => !!(m >> i & 1)));
+  for (let t = 0; t < 300; t++) {
+    const st = P.map((_, a) => { const others = P.map((_, i) => i).filter((i) => i !== a); return pick(tmpl)(a, pick(others)); });
+    // har kim o'z turiga mos gapiradi: rostgo'y — rost, yolg'onchi — yolg'on
+    const ok = worlds.filter((w) => st.every((s, i) => s.f(w) === w[i]));
+    if (ok.length !== 1) continue;
+    const W = ok[0];
+    const fmt = (w) => P.map((p, i) => `${p} — ${w[i] ? "rostgo'y" : "yolg'onchi"}`).join(", ");
+    const opts = [fmt(W), ...shuffle(worlds.filter((w) => w.join() !== W.join())).slice(0, 3).map(fmt)];
+    return { cat: "verbal", diff: n === 2 ? 4 : level >= 7 ? 7 : 6, text: `Orolda har kim yo doim rost, yo doim yolg'on gapiradi. ${P.map((p, i) => `${p}: ${st[i].t}`).join(" ")} Kim kim?`, options: shuffle(opts), answer: fmt(W) };
+  }
+  return genOrdering(level);
+}
+
+// 11–12) So'z analogiyasi va mantiqiy masalalar (bankdan, alohida turlar)
+const isAnalogy = (v) => /:/.test(v.t) || /ortiqcha|o'xshamaydi/i.test(v.t);
+function genFromBank(level, used, filter, fallback) {
+  const pool = VERBAL.filter((v) => filter(v) && Math.abs(v.d - level) <= 1 && !used.has(v.t));
+  const any = VERBAL.filter((v) => filter(v) && !used.has(v.t));
+  const src = pool.length ? pool : any;
+  if (!src.length) return fallback(level);
+  const exact = src.filter((v) => v.d === level);
+  const v = pick(exact.length ? exact : src); used.add(v.t);
+  return { cat: "verbal", diff: v.d, text: v.t, options: shuffle(v.o), answer: v.a };
+}
+const WORD_PAIRS = [
+  ["Qalam", "Yozish", "Qaychi", "Kesish"], ["Baliq", "Suv", "Qush", "Havo"], ["Shifokor", "Bemor", "O'qituvchi", "O'quvchi"], ["Non", "Novvoy", "Mebel", "Duradgor"],
+  ["Kun", "Tun", "Yoz", "Qish"], ["Barg", "Daraxt", "Sahifa", "Kitob"], ["Ko'z", "Ko'rish", "Burun", "Hidlash"], ["Muz", "Suv", "Bug'", "Suv"],
+  ["Soat", "Vaqt", "Termometr", "Harorat"], ["Bola", "Odam", "Kuchuk", "It"], ["G'isht", "Devor", "So'z", "Gap"], ["Paxta", "Mato", "Bug'doy", "Un"],
+];
+function genWordAnalogy(level, used) {
+  if (Math.random() < 0.5) return genFromBank(level, used, isAnalogy, () => genWordAnalogy(level, new Set()));
+  const p = pick(WORD_PAIRS.filter((x) => !used.has(x.join()))) || pick(WORD_PAIRS); used.add(p.join());
+  const wrong = shuffle([...new Set(WORD_PAIRS.filter((x) => x !== p).flat())].filter((w) => w !== p[3] && w !== p[2])).slice(0, 3);
+  return { cat: "verbal", diff: Math.min(4, Math.max(2, level)), text: `${p[0]} : ${p[1]} = ${p[2]} : ?`, options: shuffle([p[3], ...wrong]), answer: p[3] };
+}
+function genLogicBank(level, used) { return genFromBank(level, used, (v) => !isAnalogy(v), (L) => (L >= 6 ? genSeating(L) : genOrdering(L))); }
+
+// 18b) Oynadagi aks
+function genMirror(level) {
+  const n = level <= 2 ? 5 : level <= 4 ? 6 : 7;
+  let base, guard = 0;
+  do { base = polyomino(n); guard++; } while ((allRots(base).some((r) => sig(r) === sig(mirror(base))) || uniq(allRots(base).map(sig)).length < 4) && guard < 400);
+  const R = [([x, y]) => [x, y], ([x, y]) => [-y, x], ([x, y]) => [-x, -y], ([x, y]) => [y, -x]];
+  const M = ([x, y]) => [-x, y];
+  const correct = tr(base, M);
+  const wrong = [tr(base, R[1]), tr(base, R[2]), tr(base, (p) => R[1](M(p))), tr(base, (p) => R[2](M(p)))];
+  const items = shuffle([{ c: correct, ok: true }, ...shuffle(wrong).slice(0, level >= 5 ? 4 : 3).map((c) => ({ c, ok: false }))]);
+  return { cat: "spatial", diff: Math.min(7, level + 1), text: "Shakl o'ng tomonidagi vertikal ko'zguga qaradi. Ko'zgudagi aksi qaysi? (pushti katak yo'nalishni ko'rsatadi)", svg: `<div style="width:130px">${polySVG(tr(base, (p) => p))}</div>`, options: items.map((_, i) => "m" + i), optionSVG: items.map((it) => polySVG(it.c)), answer: "m" + items.findIndex((it) => it.ok), visual: true };
+}
+
+// P1) Kublarni sanash (izometrik, hech qaysi ustun yashirin emas)
+function genCubeCount(level) {
+  const n = level <= 3 ? 2 : 3, maxH = level <= 3 ? 2 : level <= 5 ? 3 : 4;
+  const h = Array.from({ length: n }, () => Array(n).fill(0));
+  // orqadan oldinga balandlik kamaymaydigan zinapoya — barcha ustunlar ko'rinadi
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) { const lim = Math.min(r ? h[r - 1][c] : maxH, c ? h[r][c - 1] : maxH); h[r][c] = rnd(r === 0 && c === 0 ? 1 : 0, lim); }
+  const total = h.flat().reduce((a, b) => a + b, 0);
+  if (total < 3) return genCubeCount(level);
+  const s = 30, ox = n * s * 0.87 + 12, oy = maxH * s + 12;
+  const iso = (x, y, z) => [ox + (x - y) * s * 0.87, oy + (x + y) * s * 0.5 - z * s];
+  let g = "";
+  // chizish tartibi: orqadan oldinga, pastdan tepaga
+  for (let sum = 0; sum <= 2 * (n - 1); sum++) for (let r = 0; r < n; r++) { const c = sum - r; if (c < 0 || c >= n) continue; for (let z = 0; z < h[r][c]; z++) {
+    const x = c, y = r;
+    const P = (a, b, cz) => iso(x + a, y + b, z + cz).map((v) => v.toFixed(1)).join(",");
+    g += `<polygon points="${P(0, 0, 1)} ${P(1, 0, 1)} ${P(1, 1, 1)} ${P(0, 1, 1)}" fill="#8ed8ff" stroke="#0b0b1a" stroke-width="1.3" stroke-linejoin="round"/>`;
+    g += `<polygon points="${P(1, 0, 0)} ${P(1, 1, 0)} ${P(1, 1, 1)} ${P(1, 0, 1)}" fill="#3a8fd0" stroke="#0b0b1a" stroke-width="1.3" stroke-linejoin="round"/>`;
+    g += `<polygon points="${P(0, 1, 0)} ${P(1, 1, 0)} ${P(1, 1, 1)} ${P(0, 1, 1)}" fill="#5bb4ea" stroke="#0b0b1a" stroke-width="1.3" stroke-linejoin="round"/>`;
+  } }
+  return { cat: "spatial", diff: Math.min(7, 3 + (n === 3 ? 2 : 0) + (maxH >= 4 ? 1 : 0)), text: "Rasmda nechta kubik bor? (Kubiklar havoda turmaydi — har birining tagida kubik yoki pol bor)", svg: `<svg viewBox="0 0 ${(2 * n * s * 0.87 + 24).toFixed(0)} ${maxH * s + n * s + 24}" width="${n === 2 ? 200 : 250}" xmlns="http://www.w3.org/2000/svg">${g}</svg>`, options: numOpts(total, [total + 1, total - 1, total + 2, total - 2]), answer: String(total) };
+}
+
+// P2) Soat millari orasidagi burchak
+function genClock(level) {
+  const hh = rnd(1, 12), mm = level <= 4 ? pick([0, 15, 30, 45]) : level <= 5 ? rnd(0, 11) * 5 : rnd(1, 59);
+  let ang = Math.abs(30 * (hh % 12) - 5.5 * mm); if (ang > 180) ang = 360 - ang;
+  const fmt = (a) => (Number.isInteger(a) ? `${a}°` : `${a.toFixed(1).replace(".", ",")}°`);
+  const wrong = [Math.abs(30 * (hh % 12) - 6 * mm) % 360, (ang + 30) % 360, Math.abs(ang - 15), 360 - ang].map((a) => (a > 180 ? 360 - a : a));
+  const opts = [...new Set([fmt(ang), ...wrong.map(fmt)])].slice(0, 4);
+  if (opts.length < 4) return genClock(level);
+  const c = 45, ha = ((hh % 12) * 30 + mm * 0.5 - 90) * Math.PI / 180, ma = (mm * 6 - 90) * Math.PI / 180;
+  const ticks = Array.from({ length: 12 }, (_, i) => { const a = (i * 30 - 90) * Math.PI / 180; return `<line x1="${c + 32 * Math.cos(a)}" y1="${c + 32 * Math.sin(a)}" x2="${c + 37 * Math.cos(a)}" y2="${c + 37 * Math.sin(a)}" stroke="#b9a8ff" stroke-width="2"/>`; }).join("");
+  const svg = svgWrap(`<circle cx="${c}" cy="${c}" r="40" fill="rgba(255,255,255,.06)" stroke="#7c5cff" stroke-width="3"/>${ticks}<line x1="${c}" y1="${c}" x2="${c + 20 * Math.cos(ha)}" y2="${c + 20 * Math.sin(ha)}" stroke="#ffc94d" stroke-width="4" stroke-linecap="round"/><line x1="${c}" y1="${c}" x2="${c + 31 * Math.cos(ma)}" y2="${c + 31 * Math.sin(ma)}" stroke="#00d4ff" stroke-width="3" stroke-linecap="round"/><circle cx="${c}" cy="${c}" r="3" fill="#fff"/>`);
+  return { cat: "numeric", diff: level <= 4 ? 4 : level <= 5 ? 5 : 7, text: `Soat ${hh}:${String(mm).padStart(2, "0")} da soat va minut millari orasidagi (kichik) burchak necha gradus?`, svg: `<div style="width:150px">${svg}</div>`, options: shuffle(opts), answer: fmt(ang) };
+}
+
+// P3) Ish tezligi masalalari
+function genWork(level) {
+  const together = [[3, 6, 2], [4, 12, 3], [6, 12, 4], [10, 15, 6], [12, 24, 8], [20, 30, 12], [6, 3, 2], [12, 4, 3]];
+  const pipes = [[2, 3, 6], [3, 4, 12], [4, 6, 12], [6, 10, 15], [5, 20, 20 / 3]].filter((x) => Number.isInteger(x[2]));
+  if (level >= 6) {
+    const [a, b, ans] = pick(pipes);
+    return { cat: "numeric", diff: 6, text: `Hovuzni 1-quvur ${a} soatda to'ldiradi, 2-quvur esa to'la hovuzni ${b} soatda bo'shatadi. Ikkalasi birga ochilsa, bo'sh hovuz necha soatda to'ladi?`, options: numOpts(ans, [ans + 1, b - a, a + b, ans * 2]), answer: String(ans) };
+  }
+  const [a, b, ans] = pick(together);
+  return { cat: "numeric", diff: level <= 3 ? 4 : 5, text: `Bir ishni Aziz ${a} soatda, Bekzod ${b} soatda bajaradi. Ikkalasi birga ishlasa, necha soatda tugatadi?`, options: numOpts(ans, [(a + b) / 2 | 0, Math.abs(a - b), ans + 1, a + b]), answer: String(ans) };
+}
+
+// P4) Belgili tenglamalar
+function genSymbols(level) {
+  const S = shuffle(["★", "●", "▲", "■", "◆"]);
+  const [a, b, c] = [rnd(2, 9), rnd(2, 9), rnd(2, 6)];
+  const eqs = [`${S[0]} + ${S[0]} = ${2 * a}`, `${S[0]} + ${S[1]} = ${a + b}`];
+  let ask, ans;
+  if (level <= 4) { ask = `${S[1]} × ${S[0]} = ?`; ans = a * b; }
+  else { eqs.push(`${S[1]} − ${S[2]} = ${b - c}`); ask = level >= 6 ? `${S[0]} × ${S[2]} + ${S[1]} = ?` : `${S[2]} + ${S[0]} = ?`; ans = level >= 6 ? a * c + b : c + a; }
+  return { cat: "numeric", diff: level <= 4 ? 3 : level >= 6 ? 6 : 5, text: `Har bir belgi bitta sonni bildiradi:  ${eqs.join(";  ")}.  ${ask}`, options: numOpts(ans, [ans + 1, ans - 1, a + b + c, a * b]), answer: String(ans) };
+}
+
+/* =========================================================
+   SAVOL TURLARI RO'YXATI VA TEST JADVALI
+   ========================================================= */
+export const TYPES = [
+  // bepul testdagi 18 tur
+  { id: "shapeMatrix", cat: "matrix", name: "Shakl matritsasi", gen: (L) => genShapeMatrix(L) },
+  { id: "logicMatrix", cat: "matrix", name: "Mantiqiy matritsa", gen: (L) => genLogicMatrix(Math.max(L, 3)) },
+  { id: "oddShape", cat: "matrix", name: "Ortiqcha shakl", gen: (L) => genOddShape(L) },
+  { id: "figureSeries", cat: "matrix", name: "Shakllar qatori", gen: (L) => genFigureSeries(L) },
+  { id: "sequence", cat: "numeric", name: "Son ketma-ketligi", gen: (L) => genSequence(L) },
+  { id: "numberGrid", cat: "numeric", name: "Sonli jadval", gen: (L) => genNumberGrid(L) },
+  { id: "numAnalogy", cat: "numeric", name: "Son analogiyasi", gen: (L) => genAnalogy(L) },
+  { id: "letters", cat: "numeric", name: "Harflar qatori", gen: (L) => genLetters(L) },
+  { id: "missingNum", cat: "numeric", name: "Yetishmayotgan son", gen: (L) => genMissingNum(L) },
+  { id: "wordAnalogy", cat: "verbal", name: "So'z analogiyasi", gen: (L, u) => genWordAnalogy(L, u) },
+  { id: "logicBank", cat: "verbal", name: "Mantiqiy masala", gen: (L, u) => genLogicBank(L, u) },
+  { id: "ordering", cat: "verbal", name: "Tartiblash", gen: (L) => genOrdering(L) },
+  { id: "seating", cat: "verbal", name: "O'rindiq jumbog'i", gen: (L) => genSeating(L) },
+  { id: "code", cat: "verbal", name: "Shifr", gen: (L) => genCode(Math.max(L, 4)) },
+  { id: "knights", cat: "verbal", name: "Rostgo'y va yolg'onchi", gen: (L) => genKnights(L) },
+  { id: "rotation", cat: "spatial", name: "Aylantirish", gen: (L) => genRotation(L) },
+  { id: "mirror", cat: "spatial", name: "Ko'zgudagi aks", gen: (L) => genMirror(L) },
+  { id: "paperFold", cat: "spatial", name: "Qog'oz buklash", gen: (L) => genPaperFold(Math.max(L, 4)) },
+  // Premium uchun qo'shimcha 6 tur
+  { id: "cubeNet", cat: "spatial", name: "Kub yoyilmasi", premium: true, gen: (L) => genCube(L) },
+  { id: "cubeCount", cat: "spatial", name: "Kublarni sanash", premium: true, gen: (L) => genCubeCount(L) },
+  { id: "fractions", cat: "numeric", name: "Kasrlar", premium: true, gen: (L) => genFractions(L) },
+  { id: "clock", cat: "numeric", name: "Soat burchagi", premium: true, gen: (L) => genClock(L) },
+  { id: "work", cat: "numeric", name: "Ish tezligi", premium: true, gen: (L) => genWork(L) },
+  { id: "symbols", cat: "numeric", name: "Belgili tenglama", premium: true, gen: (L) => genSymbols(L) },
+];
+export function genType(id, level, used = new Set()) {
+  const t = TYPES.find((x) => x.id === id);
+  const L = Math.max(1, Math.min(7, Math.round(level)));
+  const q = t.gen(L, used);
+  q.type = id; q.cat = t.cat;
+  return q;
+}
+// Bepul: 18 tur × 2 = 36. Premium: 24 tur, jami 60 (12 tasi 3 martadan, 12 tasi 2 martadan).
+// Bir xil tur ketma-ket kelmaydi.
+export function buildSchedule(premium) {
+  const types = TYPES.filter((t) => premium || !t.premium).map((t) => t.id);
+  let bag = types.flatMap((id) => [id, id]);
+  if (premium) bag = bag.concat(shuffle(types).slice(0, 12));
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const s = shuffle(bag);
+    let ok = true;
+    for (let i = 1; i < s.length; i++) if (s[i] === s[i - 1]) { ok = false; break; }
+    if (ok) return s;
+  }
+  // zaxira: ketma-ketlikni qo'lda tuzatish
+  const s = shuffle(bag);
+  for (let i = 1; i < s.length; i++) if (s[i] === s[i - 1]) { const j = s.findIndex((x, k) => k > i && x !== s[i] && s[k - 1] !== s[i] && s[k + 1] !== s[i]); if (j > 0) [s[i], s[j]] = [s[j], s[i]]; }
+  return s;
+}
+
+/* =========================================================
    API
    ========================================================= */
 export function genItem(cat, level, used = new Set()) {
-  const L = Math.max(1, Math.min(7, Math.round(level)));
-  const q = cat === "matrix" ? genMatrix(L) : cat === "numeric" ? genNumeric(L) : cat === "verbal" ? genVerbal(L, used) : genSpatial(L);
-  return q;
+  const pool = TYPES.filter((t) => t.cat === cat);
+  return genType(pick(pool).id, level, used);
 }
 
 // Statik test (eski usul / tekshiruv uchun): har kategoriyadan teng, qiyinlik oshib boradi

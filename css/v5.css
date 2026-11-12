@@ -34,3 +34,6 @@
 .used-ico { font-size: 56px; margin-bottom: 8px; }
 .used-res { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 18px auto; padding: 16px 28px; border-radius: 18px; background: var(--card-strong); border: 1px solid var(--line); width: fit-content; }
 .used-res b { font-family: var(--head); font-size: 48px; line-height: 1.1; }
+
+/* shakllar qatori: "?" katagi */
+.steps .qmark { width: 84px; height: 84px; display: grid; place-items: center; border-radius: 14px; border: 2px dashed #7c5cff; color: #b9a8ff; font: 800 34px var(--head); }
