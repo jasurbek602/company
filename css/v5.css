@@ -37,3 +37,22 @@
 
 /* shakllar qatori: "?" katagi */
 .steps .qmark { width: 84px; height: 84px; display: grid; place-items: center; border-radius: 14px; border: 2px dashed #7c5cff; color: #b9a8ff; font: 800 34px var(--head); }
+
+/* Premium sahifa: bitta narx + imkoniyatlar */
+.pm-price { margin-top: 18px; font-family: var(--head); line-height: 1; }
+.pm-price b { font-size: clamp(54px, 9vw, 92px); background: linear-gradient(135deg, #ffe08a, #ffb02e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.pm-price span { font-size: 26px; color: #ffc94d; }
+.pm-once { margin: 10px 0 0; font-weight: 700; color: #ffe08a; }
+.pm-benefits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.pm-ben { border: 1.5px solid rgba(255, 201, 77, 0.35); background: linear-gradient(180deg, rgba(255, 201, 77, 0.07), var(--card)); }
+.pm-ben .pm-ico { font-size: 38px; }
+.pm-ben h3 { margin: 8px 0 6px; font-size: 19px; color: #ffe08a; }
+.pm-ben ul { list-style: none; padding: 0; margin: 0; }
+.pm-ben li { padding: 5px 0 5px 24px; position: relative; font-size: 14.5px; }
+.pm-ben li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 800; }
+.pm-cmp { overflow-x: auto; }
+.pm-cmp table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.pm-cmp th, .pm-cmp td { padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); text-align: left; }
+.pm-cmp .gold-c { color: #ffe08a; }
+@media (max-width: 900px) { .pm-benefits { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) { .pm-benefits { grid-template-columns: 1fr; } }

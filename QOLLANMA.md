@@ -109,7 +109,7 @@ git add data/premium-users.json && git commit -m "Kontakt" && git push
 Premium sahifadagi "Sotib olish" tugmalari shu havolaga olib boradi.
 
 ### Narxlarni o'zgartirish
-`js/premium.js` faylidagi `PLANS` ro'yxati (narx, nom, imkoniyatlar) → commit → push.
+`js/premium.js` faylidagi `PRICE` (narx), `BENEFITS` va `COMPARE` (imkoniyatlar) → commit → push.
 
 ## 5. Umumiy reyting (eski, Supabase — ixtiyoriy)
 Hozir reyting har bir foydalanuvchining **o'z qurilmasida**. Hamma uchun umumiy bo'lishi uchun:

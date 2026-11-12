@@ -57,7 +57,7 @@ async function users() {
       <form id="nf" class="row" autocomplete="off">
         <label class="field" style="flex:1 1 180px">Ism<input name="name" required maxlength="60" placeholder="Ali Valiyev"></label>
         <label class="field" style="flex:1 1 160px">Login<input name="login" required pattern="[a-zA-Z0-9_.\\-]{3,30}" maxlength="30" placeholder="ali2026"></label>
-        <label class="field" style="flex:0 1 150px">Muddat<select name="days"><option value="30">1 oy</option><option value="90">3 oy</option><option value="365">1 yil</option><option value="">Cheksiz</option></select></label>
+        <label class="field" style="flex:0 1 150px">Muddat<select name="days"><option value="">Cheksiz</option><option value="30">1 oy</option><option value="90">3 oy</option><option value="365">1 yil</option></select></label>
         <button class="btn" style="align-self:flex-end;margin-bottom:14px">Yaratish</button></form><div id="sec"></div></div>
     <div class="card" style="margin-top:14px"><h2>A'zolar (${list.length})</h2><div class="tbl"><table><thead><tr><th>Ism</th><th>Login</th><th>Holat</th><th>Muddat</th><th>Yaratilgan</th><th>Oxirgi kirish</th><th></th></tr></thead><tbody>
     ${list.map((u) => { const exp = u.expires_at && new Date(u.expires_at).getTime() < now; return `<tr><td>${esc(u.name)}</td><td><code>${esc(u.login)}</code></td>

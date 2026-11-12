@@ -2,48 +2,72 @@ import * as db from "./db.js";
 import { toast, confetti, esc } from "./app.js";
 import { rankOf } from "./detective.js";
 
-const PLANS = [
-  { id: "month", name: "Oylik", price: "49 000", per: "so'm / oy", feats: ["Cheksiz IQ testlar", "Chuqur kognitiv tahlil", "7 ta miya trenajyori", "6 ta detektiv ishi"] },
-  { id: "year", name: "Yillik", price: "390 000", per: "so'm / yil", best: true, feats: ["Oylikdagi hammasi", "33% tejash", "Yangi detektiv ishlari birinchi", "Natijalar dinamikasi"] },
-  { id: "life", name: "Umrbod", price: "790 000", per: "so'm bir marta", feats: ["Barcha imkoniyatlar abadiy", "Kelajakdagi barcha o'yinlar", "Ustuvor yordam", "Reytingda 👑 nishon"] },
+// Premium — bitta, bir martalik to'lov. Muddat ko'rsatilmaydi.
+const PRICE = "15 000";
+const BENEFITS = [
+  { ico: "🧠", t: "Kuchli Premium IQ test — cheksiz", d: ["60 ta savol, 45 daqiqa", "24 xil savol turi (bepulda 18 ta)", "Aniqroq natija: ±3,5 ball", "Istagancha qayta yechish — har safar yangi savollar"] },
+  { ico: "📊", t: "Chuqur kognitiv tahlil", d: ["4 ta indeks: mantiq, fazoviy, sonli, og'zaki", "Kuchli va zaif tomonlaringiz batafsil", "Shaxsiy rivojlanish rejasi", "Sizga mos kasblar tavsiyasi"] },
+  { ico: "🕵️", t: "3D Detektiv — barcha 12 ish ochiq", d: ["Bepulda faqat 1-ish, Premiumda hammasi", "Ketma-ketlik shart emas — istaganingizdan boshlang", "Tergov, so'roq, dalillar taxtasi, sud zali", "Tokenlar va detektiv unvonlari"] },
+  { ico: "🎮", t: "Barcha miya trenajyorlari", d: ["Dual N-Back — xotira uchun eng kuchli mashq", "IQ trener, Aylantirish, Schulte jadvali", "Rekordlar va darajalar saqlanadi", "Kunlik mashq bilan tez rivojlanish"] },
+  { ico: "🏆", t: "Reytingda 👑 belgisi", d: ["Natijangiz umumiy reytingda Premium belgisi bilan", "Har bir natijangiz tarixda saqlanadi", "O'sishingizni kuzatib boring"] },
+  { ico: "♾️", t: "Bir marta to'lang — tamom", d: ["Obuna yo'q, har oy pul yechilmaydi", "Kelajakdagi yangi ishlar va o'yinlar ham kiradi", "Shaxsiy login va parol — istalgan qurilmadan kirasiz"] },
+];
+const COMPARE = [
+  ["IQ test", "1 marta, 36 savol", "Cheksiz, 60 savol"],
+  ["Savol turlari", "18 tur", "24 tur"],
+  ["Natija aniqligi", "±4,5 ball", "±3,5 ball"],
+  ["Tahlil", "5 ta qisqa xulosa", "Chuqur tahlil + reja + kasblar"],
+  ["3D Detektiv ishlari", "1 ta", "Barcha 12 ta"],
+  ["Miya trenajyorlari", "Asosiylari", "Hammasi (Dual N-Back, IQ trener…)"],
+  ["Reytingda 👑 belgisi", "—", "✓"],
 ];
 
 export async function renderPremium(app) {
   if (db.isPremium()) return cabinet(app);
   const list = await db.premiumUsers();
   const contact = list.contact || db.ADMIN_CONTACT;
+  const buy = (cls = "gold lg", txt = `👑 Premium olish — ${PRICE} so'm`) => contact
+    ? `<a class="btn ${cls}" href="${esc(contact)}" target="_blank" rel="noopener">${txt}</a>`
+    : `<button class="btn ${cls}" disabled>Admin orqali</button>`;
   app.innerHTML = `<div>
     <section class="center mb">
-      <span class="tag gold">👑 Premium a'zolar bo'limi</span>
-      <h1 class="mt grad-text" style="font-size:clamp(30px,5vw,52px)">Intellektingizni keyingi darajaga olib chiqing</h1>
-      <p class="muted" style="max-width:640px;margin:0 auto">Premium akkaunt admin tomonidan beriladi: to'lovdan so'ng sizga <b style="color:#fff">login va parol</b> yuboriladi. Bir marta kirsangiz — qurilmangizda saqlanib qoladi.</p>
+      <span class="tag gold">👑 Premium</span>
+      <h1 class="mt grad-text" style="font-size:clamp(30px,5vw,52px)">Hamma narsani oching — bir marta to'lov bilan</h1>
+      <div class="pm-price"><b>${PRICE}</b> <span>so'm</span></div>
+      <p class="pm-once">✅ Bir martalik to'lov · obuna yo'q · qo'shimcha to'lov yo'q</p>
+      <div class="row" style="justify-content:center;margin-top:14px">${buy()}</div>
     </section>
 
-    <div class="grid g2-1 mb">
+    <h2 class="section-title center">Premium bilan nimalar ochiladi?</h2>
+    <div class="pm-benefits">
+      ${BENEFITS.map((b, i) => `<div class="card pm-ben reveal" style="transition-delay:${i * 70}ms">
+        <div class="pm-ico">${b.ico}</div>
+        <h3>${b.t}</h3>
+        <ul>${b.d.map((x) => `<li>${x}</li>`).join("")}</ul>
+      </div>`).join("")}
+    </div>
+
+    <h2 class="section-title center">Bepul va Premium farqi</h2>
+    <div class="card pm-cmp"><table>
+      <thead><tr><th></th><th>Bepul</th><th class="gold-c">👑 Premium</th></tr></thead>
+      <tbody>${COMPARE.map((r) => `<tr><td>${r[0]}</td><td class="muted">${r[1]}</td><td class="gold-c"><b>${r[2]}</b></td></tr>`).join("")}</tbody>
+    </table></div>
+
+    <div class="grid g2-1 mt">
+      <section class="card stack">
+        <h2 style="font-size:22px">Qanday olinadi?</h2>
+        <ol class="steps-list"><li>Telegramda admin bilan bog'laning</li><li>${PRICE} so'm to'lov qiling (bir marta)</li><li>Admin sizga login va parol beradi</li><li>Shu sahifada kiring — hammasi darhol ochiladi</li></ol>
+        ${buy("gold", "✉️ Telegram orqali olish")}
+      </section>
       <section class="card vip-login">
         <h2 style="font-size:22px">🔐 Premium akkauntga kirish</h2>
         <form id="vf" class="stack">
           <label class="field"><span>Login</span><input name="login" required autocomplete="username" placeholder="Admin bergan login"></label>
           <label class="field"><span>Parol</span><div class="pw"><input name="password" type="password" required autocomplete="current-password" placeholder="••••••••••••"><button type="button" class="eye" aria-label="Parolni ko'rsatish">👁</button></div></label>
           <button class="btn gold lg" type="submit" style="width:100%">Kirish</button>
-          <p class="small muted" style="margin:0">Parol qurilmangizda xavfsiz (xesh ko'rinishida) saqlanadi — keyingi safar avtomatik kirasiz.</p>
+          <p class="small muted" style="margin:0">Bir marta kirsangiz — qurilmangizda saqlanib qoladi.</p>
         </form>
       </section>
-      <section class="card stack">
-        <h2 style="font-size:22px">Qanday olinadi?</h2>
-        <ol class="steps-list"><li>Tarifni tanlang</li><li>Admin bilan bog'laning va to'lov qiling</li><li>Admin sizga login va parol beradi</li><li>Shu yerda kiring — hammasi ochiladi</li></ol>
-        ${contact ? `<a class="btn" href="${esc(contact)}" target="_blank" rel="noopener">✉️ Admin bilan bog'lanish</a>` : `<p class="small muted">Admin kontakti hali qo'shilmagan.</p>`}
-      </section>
-    </div>
-
-    <div class="plans">
-      ${PLANS.map((pl, i) => `<div class="card plan ${pl.best ? "best" : ""} reveal" style="transition-delay:${i * 90}ms">
-        ${pl.best ? `<span class="tag gold ribbon">Eng foydali</span>` : ""}
-        <h3>${pl.name}</h3>
-        <div class="price">${pl.price} <small>${pl.per}</small></div>
-        <ul>${pl.feats.map((f) => `<li>${f}</li>`).join("")}</ul>
-        ${contact ? `<a class="btn ${pl.best ? "gold" : "ghost"}" href="${esc(contact)}" target="_blank" rel="noopener">Sotib olish</a>` : `<button class="btn ghost" disabled>Admin orqali</button>`}
-      </div>`).join("")}
     </div>
   </div>`;
   const f = app.querySelector("#vf");
@@ -75,7 +99,7 @@ async function cabinet(app) {
       <div class="row"><span class="tag tokens">🪙 ${p.tokens} token</span><span class="tag">${rank.ico} ${rank.name}</span><button class="btn ghost sm" id="out">Chiqish</button></div>
     </section>
     <div class="grid g4 mt">
-      <div class="card stat"><span class="muted small">Detektiv ishlari</span><b>${solved.length}/6</b></div>
+      <div class="card stat"><span class="muted small">Detektiv ishlari</span><b>${solved.length}/12</b></div>
       <div class="card stat"><span class="muted small">Dual N-Back darajasi</span><b>${nback}-back</b></div>
       <div class="card stat"><span class="muted small">Schulte rekordi</span><b>${best("schulte") ?? "—"}${best("schulte") ? " s" : ""}</b></div>
       <div class="card stat"><span class="muted small">IQ trener seriyasi</span><b>${best("trainer") ?? "—"}</b></div>

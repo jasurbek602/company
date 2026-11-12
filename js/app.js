@@ -109,7 +109,7 @@ async function home() {
       </div>
       <div class="stats">
         <div><b data-count="7">0</b><span>qiyinlik darajasi</span></div>
-        <div><b data-count="11">0</b><span>savol turi</span></div>
+        <div><b data-count="24">0</b><span>savol turi</span></div>
         <div><b>±4</b><span>IQ aniqlik (model)</span></div>
       </div>
     </div>
@@ -126,7 +126,7 @@ async function home() {
       <h2 style="margin:0;font-size:22px">Sizning natijangiz</h2>
       ${me ? `<div class="mini-iq"><b class="grad-text">${me.iq}</b><span>± ${me.ci ?? "?"} · ${esc(band(me.iq))}</span></div><p class="muted small">${new Date(me.created_at).toLocaleDateString("uz-UZ")} · ${esc(me.name)}</p><a href="#/me" class="btn ghost">Natijalarim</a>` : `<p class="muted">Hali test topshirmagansiz. Ismingiz va yoshingizni kiriting — natijangiz reytingga tushadi.</p><a href="#/test" class="btn">Boshlash</a>`}
       <div class="divider"></div>
-      <p class="small muted">👑 Premium: cheksiz test, chuqur tahlil, Dual N-Back, IQ trener, 6 ta detektiv ishi.</p>
+      <p class="small muted">👑 Premium (bir marta 15 000 so'm): cheksiz kuchli test, chuqur tahlil, barcha trenajyorlar, 12 ta 3D detektiv ishi.</p>
       ${db.isPremium() ? `<a href="#/vip" class="btn gold">Premium kabinet</a>` : vipBtn("Premium haqida")}
     </div>
   </section>
