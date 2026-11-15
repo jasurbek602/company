@@ -4,6 +4,7 @@ import * as db from "./db.js";
 import { renderGames } from "./games.js";
 import { renderDetective, detHandles } from "./detective.js";
 import { renderPremium } from "./premium.js";
+import { cosmosHTML, mountCosmos, NODES } from "./cosmos.js";
 import { renderAdmin } from "./admin.js";
 import { renderKids } from "./kids.js";
 
@@ -52,7 +53,7 @@ export const setCleanup = (f) => {
 const routes = {
   "": home, test: testIntro, result: resultView, me: myPage, rating: ratingPage,
   vip: () => renderPremium(app), admin: () => (db.API ? (location.href = "/admin") : renderAdmin(app)), kids: () => renderKids(app),
-  games: () => gate("Miya o'yinlari", () => renderGames(app)),
+  games: (id) => gate("Miya o'yinlari", () => renderGames(app, id)),
   // Detektiv: 1-ish hamma uchun bepul, qolganlari Premium (detective.js ichida tekshiriladi)
   detective: () => renderDetective(app),
 };
@@ -97,23 +98,14 @@ function boardTable(rows, highlight) {
 async function home() {
   const lb = await db.leaderboard(10);
   const me = db.myResults()[0];
-  app.innerHTML = `<div>
-  <section class="hero">
-    <div>
-      <span class="tag">🧠 Moslashuvchan test · 7 qiyinlik darajasi</span>
-      <h1 class="mt grad-text">Haqiqiy IQ darajangizni aniqlang</h1>
-      <p class="lead">36 ta savol, 30 daqiqa. Test javoblaringizga moslashadi: to'g'ri javob bersangiz — savollar qiyinlashadi. Natija zamonaviy psixometrik model (IRT) asosida, yoshingizga moslab, ishonch oralig'i bilan hisoblanadi.</p>
-      <div class="row mt">
-        <a href="#/test" class="btn lg pulse-btn">Testni boshlash — bepul</a>
-        <a href="#/rating" class="btn ghost lg">🏆 Reyting</a>
-      </div>
-      <div class="stats">
-        <div><b data-count="7">0</b><span>qiyinlik darajasi</span></div>
-        <div><b data-count="24">0</b><span>savol turi</span></div>
-        <div><b>±4</b><span>IQ aniqlik (model)</span></div>
-      </div>
+  app.innerHTML = `<div class="home">
+  ${cosmosHTML(me, db.isPremium())}
+
+  <section class="cz-map">
+    <div class="cz-map-head reveal"><span class="cz-kicker">✦ Koinot xaritasi</span><h2 class="section-title" style="margin:10px 0 6px">Hamma o'yin va bo'limlar — bir joyda</h2><p class="muted" style="margin:0">Bepul boshlang yoki 👑 Premium bilan butun koinotni oching.</p></div>
+    <div class="cz-grid">
+      ${NODES.map((n, i) => `<a href="${n.href}" class="cz-card reveal" style="--c:#${n.col.toString(16).padStart(6, "0")};transition-delay:${(i % 4) * 70}ms"><span class="cz-card-ico">${n.ico}</span><b>${n.name}</b><small>${n.sub}</small>${n.free ? `<i class="cz-badge free">BEPUL</i>` : n.prem && !db.isPremium() ? `<i class="cz-badge">👑</i>` : ""}</a>`).join("")}
     </div>
-    <div class="hero-visual"><div class="orbit"><i></i></div><div class="orbit o2"><i></i></div><div class="orbit o3"><i></i></div><div class="core">IQ</div></div>
   </section>
 
   <section class="grid g2-1 mt reveal">
@@ -138,14 +130,11 @@ async function home() {
 
   <a href="#/kids" class="kids-banner reveal"><span class="kb-owl">🦉</span><div><b>Bilimdon bola — bolalar uchun bepul!</b><span>Sanash, hisob, harflar, mantiq, ranglar va xotira o'yinlari (4–10 yosh)</span></div><span class="kb-go">O'ynash →</span></a>
 
-  <h2 class="section-title reveal">Premium bilan yanada chuqurroq</h2>
-  <div class="grid g3">
-    <a href="#/vip" class="card feature reveal" style="text-decoration:none"><span class="tag gold lock">👑</span><div class="ico">📊</div><h3>Chuqur tahlil</h3><p>4 ta kognitiv indeks, kategoriyalar bo'yicha IQ, 4 haftalik shaxsiy reja.</p></a>
-    <a href="#/games" class="card feature reveal" style="text-decoration:none;transition-delay:80ms"><span class="tag gold lock">👑</span><div class="ico">🎮</div><h3>Miya trenajyorlari</h3><p>Dual N-Back (ilmiy asoslangan), IQ trener, Aylantirish, Schulte, Stroop va boshqalar.</p></a>
-    <a href="#/detective" class="card feature reveal" style="text-decoration:none;transition-delay:160ms"><span class="tag gold lock">👑</span><div class="ico">🕵️</div><h3>3D Detektiv byurosi</h3><p>6 ta ish: 3D jinoyat joylarini tinting, so'roq qiling, yolg'onni fosh qiling, unvon va kunlik mukofotlar oling.</p></a>
-  </div>
   </div>`;
-  document.querySelectorAll("[data-count]").forEach((el) => { const to = +el.dataset.count; let v = 0; const iv = setInterval(() => { el.textContent = ++v; if (v >= to) clearInterval(iv); }, 90); });
+  const cz = app.querySelector("#cosmos");
+  let off = null, dead = false;
+  setCleanup(() => { dead = true; off?.(); });
+  mountCosmos(cz, { iq: me?.iq }).then((f) => (dead ? f?.() : (off = f)));
 }
 
 /* ---------------- RATING ---------------- */
